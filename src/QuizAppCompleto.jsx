@@ -22,7 +22,9 @@ export default function QuizAppCompleto() {
       .then((res) => res.json())
       .then((data) => {
         setQuestions(data);
-        const uniqueManuais = [...new Set(data.map((q) => q.MANUAL))];
+        const uniqueManuais = [...new Set(
+  data.map(q => (q.MANUAL || '').trim().toUpperCase()).filter(Boolean)
+)];
         setManuais(uniqueManuais);
       });
   }, []);
@@ -44,7 +46,7 @@ export default function QuizAppCompleto() {
   }, [tempoAtivo, quiz, showResults]);
 
   const topicosFiltrados = [...new Set(
-    questions.filter(q => q.MANUAL === selectedManual).map(q => q.Subtópico)
+    questions.filter(q => (q.MANUAL || '').trim().toUpperCase() === selectedManual).map(q => q.Subtópico)
   )];
 
   const gerarQuiz = () => {
