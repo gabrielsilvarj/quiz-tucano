@@ -429,5 +429,5 @@ button:focus {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(8px) brightness(0.1); /* aplica blur e escurece */
+  filter: blur(8px) brightness(0.2); /* aplica blur e escurece */
 }
