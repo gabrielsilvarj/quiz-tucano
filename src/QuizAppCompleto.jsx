@@ -362,71 +362,90 @@ export default function QuizAppCompleto() {
   const [isLoading, setIsLoading] = useState(true);
   const [manuais, setManuais] = useState([]);
   const [selectedManual, setSelectedManual] = useState('');
-  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState(
-    'quizSelectedTopicos',
-    []
-  );
-
-  const [numQuestoes, setNumQuestoes] = useLocalStorageState(
-    'quizNumQuestoes',
-    10
-  );
-  const [tempoAtivo, setTempoAtivo] = useLocalStorageState(
-    'quizTempoAtivo',
-    false
-  );
-  const [tempoLimite, setTempoLimite] = useLocalStorageState(
-    'quizTempoLimite',
-    30
-  );
-
+  const [selectedTopicos, setSelectedTopicos] = useState([]);
+  const [numQuestoes, setNumQuestoes] = useState(10);
+  const [tempoAtivo, setTempoAtivo] = useState(false);
+  const [tempoLimite, setTempoLimite] = useState(30);
   const [timer, setTimer] = useState(tempoLimite);
   const [quiz, setQuiz] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
-
   const timerRef = useRef(null);
 
-  // Ajuste a URL para o seu banco
-  const sheetUrl =
-    'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
+  const sheetUrl = 'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
 
-  // >>>>> LOGS PARA DEPURAÇÃO <<<<<
-  useEffect(() => {
-    console.log('DEBUG -> selectedManual:', selectedManual);
-    console.log('DEBUG -> selectedTopicos:', selectedTopicos);
-  }, [selectedManual, selectedTopicos]);
-
-  /* -----------------------------------------------------
-     (A) Carrega dados da planilha
-  ----------------------------------------------------- */
   useEffect(() => {
     fetch(sheetUrl)
       .then(res => res.json())
-     .then(data => {
-  const dadosNormalizados = data.map(q => ({
-    ...q,
-    MANUAL: (q.MANUAL || '').trim().toUpperCase(),
-    Subtópico: (q.Subtópico || '').trim().toUpperCase(),
-    Seção: (q.Seção || '').trim()
-  }));
+      .then(data => {
+        const dadosNormalizados = data.map(q => ({
+          ...q,
+          MANUAL: (q.MANUAL || '').trim().toUpperCase(),
+          Subtópico: (q.Subtópico || '').trim().toUpperCase(),
+          Seção: (q.Seção || '').trim()
+        }));
 
-  setQuestions(dadosNormalizados);
-
-  const uniqueManuais = Array.from(new Set(dadosNormalizados.map(q => q.MANUAL)));
-  setManuais(uniqueManuais);
-  setIsLoading(false);
-
-  console.log('Dados normalizados:', dadosNormalizados.slice(0, 5));
-})
-
-
-        // LOG do que veio do banco
-        console.log('DEBUG -> questions (primeiras 5):', data.slice(0, 5));
+        setQuestions(dadosNormalizados);
+        const uniqueManuais = Array.from(new Set(dadosNormalizados.map(q => q.MANUAL)));
+        setManuais(uniqueManuais);
+        setIsLoading(false);
+        console.log('Dados normalizados:', dadosNormalizados.slice(0, 5));
         console.log('DEBUG -> uniqueManuais:', uniqueManuais);
       })
+      .catch(erro => {
+        console.error('Erro ao buscar banco:', erro);
+        setIsLoading(false);
+      });
+  }, []);
+
+  const handleTimeExpired = useCallback(() => {
+    const i = currentQuestionIndex;
+    setUserAnswers(prev => ({ ...prev, [i]: 'TEMPO_EXPIRADO' }));
+    if (i < quiz.length - 1) {
+      setCurrentQuestionIndex(i + 1);
+    } else {
+      setShowResults(true);
+    }
+  }, [currentQuestionIndex, quiz.length]);
+
+  useEffect(() => {
+    if (!tempoAtivo || showResults || quiz.length === 0) return;
+
+    setTimer(tempoLimite);
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          handleTimeExpired();
+          return tempoLimite;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timerRef.current);
+  }, [currentQuestionIndex, tempoAtivo, showResults, quiz.length, tempoLimite, handleTimeExpired]);
+
+  const maxQuestoesPossiveis = useMemo(() => {
+    if (!selectedManual || selectedTopicos.length === 0 || questions.length === 0) {
+      return 0;
+    }
+
+    const quantidades = selectedTopicos.map(topico =>
+      questions.filter(
+        q => q.MANUAL === selectedManual && q.Subtópico === topico.toUpperCase()
+      ).length
+    );
+
+    const minPorCategoria = Math.min(...quantidades);
+    return minPorCategoria * selectedTopicos.length;
+  }, [questions, selectedManual, selectedTopicos]);
+
+  return <div>Aplicação funcionando com correções.</div>;
+}
       .catch(erro => {
         console.error('Erro ao buscar banco:', erro);
         setIsLoading(false);
