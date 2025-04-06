@@ -189,8 +189,7 @@ button:focus {
   line-height: 1.5;
   color: #cfd8dc;
 }
-
-/* Hierarquia de seções e subtópicos */
+/* Novas regras para evidenciar a hierarquia de seções e subtópicos */
 .seccao-group {
   margin: 1rem 0;
   border: 1px solid var(--border-color);
@@ -230,20 +229,4 @@ button:focus {
 
 .subtopico-item input[type="checkbox"] {
   margin-right: 0.5rem;
-}
-
-/* Animação fade-in */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
 }
