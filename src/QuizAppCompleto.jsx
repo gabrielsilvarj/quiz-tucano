@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import './App.css';
 
@@ -201,7 +200,8 @@ function ConfigSelector({
             }
           }}
           disabled={selectedTopicos.length === 0}
-          style={{ marginLeft: '0.5rem' }}
+          /* Ajuste de largura para celular */
+          style={{ marginLeft: '0.5rem', width: '80px' }}
         />
       </div>
       <div style={{ marginTop: '1rem' }}>
@@ -220,6 +220,8 @@ function ConfigSelector({
               type="number"
               value={tempoLimite}
               onChange={e => setTempoLimite(Number(e.target.value))}
+              /* Ajuste de largura para celular */
+              style={{ width: '80px', marginLeft: '0.5rem' }}
             />
           </>
         )}
@@ -486,7 +488,9 @@ export default function QuizAppCompleto() {
   const calcularPontuacao = () => {
     let score = 0;
     quiz.forEach((q, i) => {
-      if (userAnswers[i] === q.Correta) score += 1;
+      if (userAnswers[i] === q.Correta) {
+        score += 1;
+      }
     });
     return score;
   };
@@ -505,7 +509,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
+      <h1 className="title fade-in">Estudo T-27M</h1>
       {!quizIniciado && <Instrucoes />}
       {!quizIniciado && (
         <>
