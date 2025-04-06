@@ -79,9 +79,7 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-/** Exibe as seções e seus subtópicos agrupados.  
- *  Se uma seção for selecionada, todos os seus subtópicos serão marcados.
- */
+/** Componente para exibir seções e seus subtópicos agrupados */
 function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
   // Agrupa os subtópicos por seção para o manual selecionado.
   const seccoes = useMemo(() => {
@@ -90,10 +88,10 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
     );
     const groups = {};
     filtered.forEach(q => {
-      const secao = q.Seção; // considere que a propriedade do objeto seja "Seção"
-      const subtitulo = q.Subtópico;
+      const secao = q.Seção; // Propriedade que representa a seção
+      const subtopico = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
-      groups[secao].add(subtitulo);
+      groups[secao].add(subtopico);
     });
     return Object.entries(groups).map(([secao, subtopicosSet]) => ({
       secao,
@@ -134,8 +132,8 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
                 checked={allSelected}
                 onChange={() => toggleSection(secao, subtopicos)}
               />
-              <label htmlFor={`secao-${secao}`}>
-                <strong>{secao}</strong>
+              <label htmlFor={`secao-${secao}`} className="seccao-label">
+                {secao}
               </label>
             </div>
             <div className="subtopicos-list">
@@ -420,9 +418,6 @@ export default function QuizAppCompleto() {
       setShowResults(true);
     }
   };
-
-  // Cálculo dos tópicos disponíveis não é mais necessário,
-  // pois a seleção será feita via agrupamento por seção.
 
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
