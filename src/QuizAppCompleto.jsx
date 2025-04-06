@@ -499,7 +499,9 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Quiz Interativo</h1>
+      <h1 className="title fade-in">
+         Teste de conhecimento
+         T-27M (1º EIA)</h1>
       {!quizIniciado && <Instrucoes />}
       {!quizIniciado && (
         <>
