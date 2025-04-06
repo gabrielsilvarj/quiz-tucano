@@ -134,18 +134,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-<div className="instructions">
-  <h2>Instruções:</h2>
-  <ul>
-    <li>Selecione o manual e os tópicos que deseja estudar.</li>
-    <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
-    <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
-    <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-    <li>As respostas não podem ser alteradas após selecionadas.</li>
-    <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
-  </ul>
-</div>
-    
+
       <h1>Quiz Interativo</h1>
 
       {!quizIniciado && (
