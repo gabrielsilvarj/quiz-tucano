@@ -80,9 +80,18 @@ body {
   color: #ffffff;
 }
 
+/* Ajuste de layout para evitar quebra entre input e label */
 .option {
-  margin-left: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin-bottom: var(--spacing-small);
+  line-height: 1.4;
+}
+
+.option label {
+  flex: 1;
+  word-break: break-word;
 }
 
 /* Inputs para opções */
@@ -408,23 +417,4 @@ button:focus {
 /* Nova regra para mudar a cor do cabeçalho do balão quando a seção estiver totalmente selecionada */
 .seccao-header.selected {
   background-color: var(--success-color); /* Defina --success-color na sua variável, por exemplo: #4CAF50 */
-}
-/* Ajuste de layout para evitar quebra entre input e label */
-.option {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: var(--spacing-small);
-  line-height: 1.4;
-}
-
-.option label {
-  flex: 1;
-  word-break: break-word;
-}
-
-
-/* Caso não tenha definido, adicione também: */
-:root {
-  --success-color: #4CAF50;
 }
