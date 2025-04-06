@@ -83,7 +83,7 @@ body {
 /* Ajuste de layout para evitar quebra entre input e label */
 .option {
   display: flex;
-  align-items: flex-start;
+  align-items: center; /* Alinha o input verticalmente ao centro do texto */
   gap: 0.5rem;
   margin-bottom: var(--spacing-small);
   line-height: 1.4;
