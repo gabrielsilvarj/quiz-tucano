@@ -1,95 +1,120 @@
-/* App.css */
 
-/* Reset básico */
+/* Reset e base */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Container principal */
+body {
+  background-color: #121212;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
 .container {
   max-width: 768px;
   margin: 0 auto;
   padding: 2rem;
 }
 
-/* Cabeçalho */
 .title {
   text-align: center;
+  font-size: 2rem;
   margin-bottom: 2rem;
-  color: #2e3d49;
+  color: #ffffff;
 }
 
-/* Seções / Sessões */
 .section-title {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
   margin-top: 1.5rem;
   font-weight: bold;
-  color: #333;
+  color: #b0bec5;
 }
 
-/* Cards de pergunta */
+/* Cards */
 .question-card {
-  background-color: #ffffff;
+  background-color: #1e1e1e;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  padding: 1rem;
-  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
 }
 
-/* Título da questão */
+.question-card:hover {
+  transform: scale(1.01);
+}
+
 .question-title {
   font-weight: bold;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   font-size: 1.1rem;
-  color: #444;
+  color: #ffffff;
 }
 
-/* Opções de resposta */
 .option {
   margin-left: 1.5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: #42a5f5;
 }
 
 /* Botões */
 button {
-  background-color: #1976d2; /* tom de azul */
+  background-color: #42a5f5;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 0.6rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
-  margin: 0.4rem;
+  margin: 0.4rem 0.4rem 0.4rem 0;
+  transition: background-color 0.2s ease;
 }
 
 button:hover {
-  background-color: #0f5aa6;
+  background-color: #1e88e5;
 }
 
-/* Timer */
 .timer {
   font-size: 1.2rem;
-  color: #c0392b; /* vermelho leve */
+  color: #ff7043;
   font-weight: bold;
   margin-bottom: 1rem;
 }
 
 /* Resultados */
 .result-section {
-  background-color: #fafafa;
-  padding: 1rem;
+  background-color: #263238;
+  padding: 1.5rem;
   border-radius: 8px;
   margin-top: 2rem;
 }
 
-/* Correções */
-.corrections-list li {
-  margin-top: 0.75rem;
-  line-height: 1.5;
+.result-section h2 {
+  color: #ffffff;
+  margin-bottom: 1rem;
 }
 
-/* Lembre de adicionar classes nas tags do componente React que correspondem a essas classes */
+.result-section p {
+  font-size: 1.1rem;
+}
+
+.corrections-list li {
+  margin-top: 1rem;
+  line-height: 1.5;
+  background-color: #37474f;
+  padding: 1rem;
+  border-radius: 6px;
+  list-style: none;
+}
+
+.corrections-list strong {
+  color: #ffffff;
+}
