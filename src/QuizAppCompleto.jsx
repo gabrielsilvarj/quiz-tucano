@@ -4,6 +4,8 @@ import './App.css';
 /* --------------------
    UTILITÁRIOS
 -------------------- */
+
+// Embaralha um array utilizando o algoritmo Fisher-Yates
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -13,6 +15,7 @@ function shuffleArray(array) {
   return arr;
 }
 
+// Hook simples para uso de localStorage
 function useLocalStorageState(key, defaultValue) {
   const [state, setState] = useState(() => {
     try {
@@ -22,30 +25,42 @@ function useLocalStorageState(key, defaultValue) {
       return defaultValue;
     }
   });
-
   useEffect(() => {
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
-    } catch {}
+    } catch {
+      // Ignora erros
+    }
   }, [key, state]);
-
   return [state, setState];
 }
 
 /* --------------------
    COMPONENTES DE SELEÇÃO
 -------------------- */
+
 function Instrucoes() {
   return (
     <div className="instructions-box fade-in">
       <h2>Instruções:</h2>
       <ul>
         <li>Selecione o manual e as seções que deseja estudar.</li>
-        <li>Em cada seção, os subtópicos serão listados e poderão ser selecionados individualmente ou em conjunto.</li>
-        <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
+        <li>
+          Em cada seção, os subtópicos serão listados e poderão ser selecionados
+          individualmente ou em conjunto.
+        </li>
+        <li>
+          Escolha quantas questões deseja e, se quiser, ative o tempo por
+          questão.
+        </li>
         <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
-        <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-        <li>As respostas poderão ser alteradas enquanto o tempo não expirar ou se não houver tempo definido.</li>
+        <li>
+          Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.
+        </li>
+        <li>
+          As respostas poderão ser alteradas enquanto o tempo não expirar ou se
+          não houver tempo definido.
+        </li>
         <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
       </ul>
     </div>
@@ -61,7 +76,7 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
           key={manual}
           onClick={() => setSelectedManual(manual)}
           style={{
-            backgroundColor: selectedManual === manual ? '#1976d2' : '#ccc',
+            backgroundColor: selectedManual === manual ? "#1976d2" : "#ccc",
           }}
         >
           {manual}
@@ -71,19 +86,14 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-function SeccoesSelector({
-  questions,
-  selectedManual,
-  selectedTopicos,
-  setSelectedTopicos,
-}) {
+function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
   const seccoes = useMemo(() => {
     const filtered = questions.filter(
-      (q) => (q.MANUAL || '').trim().toUpperCase() === selectedManual
+      (q) => (q.MANUAL || "").trim().toUpperCase() === selectedManual
     );
     const groups = {};
     filtered.forEach((q) => {
-      const secao = q.Seção; 
+      const secao = q.Seção; // ajuste conforme seu campo real
       const subtitulo = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
       groups[secao].add(subtitulo);
@@ -177,59 +187,58 @@ function ConfigSelector({
         selectedTopicos={selectedTopicos}
         setSelectedTopicos={setSelectedTopicos}
       />
-      {/* Seleção do modo de distribuição */}
-      <div style={{ marginTop: '1rem' }}>
+      <div style={{ marginTop: "1rem" }}>
         <label>Modo de Distribuição:</label>
-        <label style={{ marginLeft: '0.5rem' }}>
+        <label style={{ marginLeft: "0.5rem" }}>
           <input
             type="radio"
             name="modoDistribuicao"
             value="igual"
-            checked={modoDistribuicao === 'igual'}
-            onChange={() => setModoDistribuicao('igual')}
-          />{' '}
+            checked={modoDistribuicao === "igual"}
+            onChange={() => setModoDistribuicao("igual")}
+          />{" "}
           Distribuição Igual
         </label>
-        <label style={{ marginLeft: '0.5rem' }}>
+        <label style={{ marginLeft: "0.5rem" }}>
           <input
             type="radio"
             name="modoDistribuicao"
             value="total"
-            checked={modoDistribuicao === 'total'}
-            onChange={() => setModoDistribuicao('total')}
-          />{' '}
+            checked={modoDistribuicao === "total"}
+            onChange={() => setModoDistribuicao("total")}
+          />{" "}
           Distribuição Total
         </label>
       </div>
-      {/* Seleção do modo de apresentação */}
-      <div style={{ marginTop: '1rem' }}>
+      <div style={{ marginTop: "1rem" }}>
         <label>Modo de Apresentação:</label>
-        <label style={{ marginLeft: '0.5rem' }}>
+        <label style={{ marginLeft: "0.5rem" }}>
           <input
             type="radio"
             name="modoApresentacao"
             value="umPorVez"
-            checked={modoApresentacao === 'umPorVez'}
-            onChange={() => setModoApresentacao('umPorVez')}
-          />{' '}
+            checked={modoApresentacao === "umPorVez"}
+            onChange={() => setModoApresentacao("umPorVez")}
+          />{" "}
           Uma questão por vez
         </label>
-        <label style={{ marginLeft: '0.5rem' }}>
+        <label style={{ marginLeft: "0.5rem" }}>
           <input
             type="radio"
             name="modoApresentacao"
             value="acumulativo"
-            checked={modoApresentacao === 'acumulativo'}
-            onChange={() => setModoApresentacao('acumulativo')}
-          />{' '}
+            checked={modoApresentacao === "acumulativo"}
+            onChange={() => setModoApresentacao("acumulativo")}
+          />{" "}
           Acumulativo (desliza anteriores)
         </label>
       </div>
-      {/* Input de quantidade de questões */}
-      <div style={{ marginTop: '1rem' }}>
-        {modoDistribuicao === 'igual' ? (
+      <div style={{ marginTop: "1rem" }}>
+        {modoDistribuicao === "igual" ? (
           <>
-            <label>Quantidade de questões (máx: {maxQuestoesPossiveis || 0}):</label>
+            <label>
+              Quantidade de questões (máx: {maxQuestoesPossiveis || 0}):
+            </label>
             <input
               type="number"
               min={1}
@@ -238,16 +247,14 @@ function ConfigSelector({
               onChange={(e) => {
                 const valor = Number(e.target.value);
                 if (valor > (maxQuestoesPossiveis || 0)) {
-                  alert(
-                    `O máximo de questões permitidas é ${maxQuestoesPossiveis}.`
-                  );
+                  alert(`O máximo de questões permitidas é ${maxQuestoesPossiveis}.`);
                   setNumQuestoes(maxQuestoesPossiveis || 1);
                 } else {
                   setNumQuestoes(valor);
                 }
               }}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: '0.5rem', width: '80px' }}
+              style={{ marginLeft: "0.5rem", width: "80px" }}
             />
           </>
         ) : (
@@ -259,18 +266,18 @@ function ConfigSelector({
               value={numQuestoes}
               onChange={(e) => setNumQuestoes(Number(e.target.value))}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: '0.5rem', width: '80px' }}
+              style={{ marginLeft: "0.5rem", width: "80px" }}
             />
           </>
         )}
       </div>
-      <div style={{ marginTop: '1rem' }}>
+      <div style={{ marginTop: "1rem" }}>
         <input
           type="checkbox"
           id="tempoAtivo"
           checked={tempoAtivo}
           onChange={() => setTempoAtivo(!tempoAtivo)}
-        />{' '}
+        />{" "}
         <label htmlFor="tempoAtivo">Ativar tempo por questão?</label>
         {tempoAtivo && (
           <>
@@ -280,12 +287,12 @@ function ConfigSelector({
               type="number"
               value={tempoLimite}
               onChange={(e) => setTempoLimite(Number(e.target.value))}
-              style={{ width: '80px', marginLeft: '0.5rem' }}
+              style={{ width: "80px", marginLeft: "0.5rem" }}
             />
           </>
         )}
       </div>
-      <button style={{ marginTop: '1rem' }} onClick={gerarQuiz}>
+      <button style={{ marginTop: "1rem" }} onClick={gerarQuiz}>
         Gerar Quiz
       </button>
     </div>
@@ -293,9 +300,14 @@ function ConfigSelector({
 }
 
 /* --------------------
-   MODO DE EXIBIÇÃO DAS QUESTÕES
+   COMPONENTES DO QUIZ
 -------------------- */
 
+/** Componente que exibe a questão atual.
+ *  Se o modo de apresentação for "umPorVez", utiliza o componente QuizQuestion.
+ *  Se for "acumulativo", renderiza todas as questões anteriores com efeito slide-down e a atual com fade-in.
+ *  Todos os cartões possuem a classe "balloon" para um enquadramento mais destacado.
+ */
 function QuizQuestion({
   quiz,
   currentQuestionIndex,
@@ -304,14 +316,20 @@ function QuizQuestion({
   setCurrentQuestionIndex,
   setShowResults,
   tempoAtivo,
-  timer
+  timer,
+  modoApresentacao
 }) {
   const { Questao } = quiz[currentQuestionIndex];
-  const [animClass, setAnimClass] = useState('fade-in');
+  // No modo acumulativo, sempre usamos fade-in para a questão atual
+  const [animClass, setAnimClass] = useState("fade-in");
 
   useEffect(() => {
-    setAnimClass(currentQuestionIndex === 0 ? 'fade-in' : 'flip-in');
-  }, [currentQuestionIndex]);
+    if (modoApresentacao === "acumulativo") {
+      setAnimClass("fade-in");
+    } else {
+      setAnimClass(currentQuestionIndex === 0 ? "fade-in" : "flip-in");
+    }
+  }, [currentQuestionIndex, modoApresentacao]);
 
   return (
     <div key={currentQuestionIndex} className={`question-card balloon ${animClass}`}>
@@ -321,7 +339,7 @@ function QuizQuestion({
             {currentQuestionIndex + 1}. {Questao}
           </strong>
         </p>
-        {['A', 'B', 'C', 'D'].map((letra) => (
+        {["A", "B", "C", "D"].map((letra) => (
           <div key={letra} className="option">
             <input
               type="radio"
@@ -337,9 +355,9 @@ function QuizQuestion({
           </div>
         ))}
       </div>
-      <div style={{ marginTop: '1rem' }}>
+      <div style={{ marginTop: "1rem" }}>
         <button
-          onClick={() => setCurrentQuestionIndex((prev) => Math.max(prev - 1, 0))}
+          onClick={() => setCurrentQuestionIndex(prev => Math.max(prev - 1, 0))}
           disabled={currentQuestionIndex === 0}
         >
           Voltar
@@ -347,12 +365,12 @@ function QuizQuestion({
         <button
           onClick={() => {
             if (currentQuestionIndex < quiz.length - 1) {
-              setCurrentQuestionIndex((prev) => prev + 1);
+              setCurrentQuestionIndex(prev => prev + 1);
             } else {
               setShowResults(true);
             }
           }}
-          style={{ marginLeft: '1rem' }}
+          style={{ marginLeft: "1rem" }}
           disabled={userAnswers[currentQuestionIndex] === undefined}
         >
           Avançar
@@ -362,8 +380,10 @@ function QuizQuestion({
   );
 }
 
-/** No modo "acumulativo", mostra as questões anteriores + atual.
- *  Agora, exibimos o texto completo da alternativa que foi selecionada.
+/** Componente de apresentação do quiz.
+ *  Se o modo de apresentação for "umPorVez", exibe apenas a questão atual.
+ *  Se for "acumulativo", exibe todas as questões anteriores com efeito slide-down
+ *  e a questão atual (usando QuizQuestion) com fade-in.
  */
 function QuizPresentation({
   quiz,
@@ -376,7 +396,7 @@ function QuizPresentation({
   timer,
   modoApresentacao
 }) {
-  if (modoApresentacao === 'umPorVez') {
+  if (modoApresentacao === "umPorVez") {
     return (
       <QuizQuestion
         quiz={quiz}
@@ -387,36 +407,33 @@ function QuizPresentation({
         setShowResults={setShowResults}
         tempoAtivo={tempoAtivo}
         timer={timer}
+        modoApresentacao={modoApresentacao}
       />
     );
   } else {
-    // modo acumulativo
     return (
       <div>
         {quiz.slice(0, currentQuestionIndex).map((q, i) => {
           const resposta = userAnswers[i];
-          let textoResposta = '-';
-          if (resposta === 'TEMPO_EXPIRADO') {
-            textoResposta = 'Tempo Esgotado → Errada';
+          let textoResposta = "-";
+          if (resposta === "TEMPO_EXPIRADO") {
+            textoResposta = "Tempo Esgotado → Errada";
           } else if (resposta) {
-            // Letra selecionada: ex.: 'A'
             textoResposta = q[`Alternativa ${resposta}`] || resposta;
           }
           return (
             <div key={i} className="question-card balloon slide-down">
               <p>
-                <strong>{i + 1}. {q.Questao}</strong>
+                <strong>
+                  {i + 1}. {q.Questao}
+                </strong>
               </p>
               <div className="option">
-                <span>
-                  Resposta: {textoResposta}
-                </span>
+                <span>Resposta: {textoResposta}</span>
               </div>
             </div>
           );
         })}
-
-        {/* Exibe a questão atual */}
         {quiz[currentQuestionIndex] && (
           <QuizQuestion
             quiz={quiz}
@@ -427,6 +444,7 @@ function QuizPresentation({
             setShowResults={setShowResults}
             tempoAtivo={tempoAtivo}
             timer={timer}
+            modoApresentacao={modoApresentacao}
           />
         )}
       </div>
@@ -436,12 +454,10 @@ function QuizPresentation({
 
 /** Exibe os resultados com animação de fade-in */
 function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) {
-  const [animClass, setAnimClass] = useState('fade-in');
-
+  const [animClass, setAnimClass] = useState("fade-in");
   useEffect(() => {
-    setAnimClass('fade-in');
+    setAnimClass("fade-in");
   }, []);
-
   return (
     <div className={`result-section ${animClass}`}>
       <h2>Resultado Final</h2>
@@ -452,7 +468,7 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
       <ul className="corrections-list">
         {quiz.map((q, i) => {
           const acertou = userAnswers[i] === q.Correta;
-          const expirou = userAnswers[i] === 'TEMPO_EXPIRADO';
+          const expirou = userAnswers[i] === "TEMPO_EXPIRADO";
           return (
             <li key={i}>
               <strong>
@@ -460,17 +476,17 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
               </strong>
               <br />
               {expirou && (
-                <span style={{ color: 'red' }}>
+                <span style={{ color: "red" }}>
                   Tempo Esgotado → Considerada Errada
                 </span>
               )}
               {!expirou && userAnswers[i] && (
                 <span>
-                  Sua Resposta: <b>{userAnswers[i]}</b> {acertou ? '✅' : '❌'}
+                  Sua Resposta: <b>{userAnswers[i]}</b> {acertou ? "✅" : "❌"}
                 </span>
               )}
               {!userAnswers[i] && !expirou && (
-                <span style={{ color: 'red' }}>Não Respondida ❌</span>
+                <span style={{ color: "red" }}>Não Respondida ❌</span>
               )}
               {!acertou && !expirou && (
                 <div>
@@ -483,7 +499,7 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
           );
         })}
       </ul>
-      <button onClick={onFazerNovaProva} style={{ marginTop: '1rem' }}>
+      <button onClick={onFazerNovaProva} style={{ marginTop: "1rem" }}>
         Fazer nova prova
       </button>
     </div>
@@ -496,32 +512,22 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
 export default function QuizAppCompleto() {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [manuais, setManuais] = useState([]);
-  const [selectedManual, setSelectedManual] = useState('');
-  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState(
-    'quizSelectedTopicos',
-    []
-  );
-  const [numQuestoes, setNumQuestoes] = useLocalStorageState('quizNumQuestoes', 10);
-  const [tempoAtivo, setTempoAtivo] = useLocalStorageState('quizTempoAtivo', false);
-  const [tempoLimite, setTempoLimite] = useLocalStorageState('quizTempoLimite', 30);
-
+  const [selectedManual, setSelectedManual] = useState("");
+  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState("quizSelectedTopicos", []);
+  const [numQuestoes, setNumQuestoes] = useLocalStorageState("quizNumQuestoes", 10);
+  const [tempoAtivo, setTempoAtivo] = useLocalStorageState("quizTempoAtivo", false);
+  const [tempoLimite, setTempoLimite] = useLocalStorageState("quizTempoLimite", 30);
   const [timer, setTimer] = useState(tempoLimite);
   const [quiz, setQuiz] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
-
-  // Modo de distribuição: "igual" ou "total"
-  const [modoDistribuicao, setModoDistribuicao] = useState('igual');
-  // Modo de apresentação: "umPorVez" ou "acumulativo"
-  const [modoApresentacao, setModoApresentacao] = useState('umPorVez');
-
+  const [modoDistribuicao, setModoDistribuicao] = useState("igual");
+  const [modoApresentacao, setModoApresentacao] = useState("umPorVez");
   const timerRef = useRef(null);
-  const sheetUrl =
-    'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
+  const sheetUrl = "https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco";
 
   useEffect(() => {
     fetch(sheetUrl)
@@ -530,7 +536,7 @@ export default function QuizAppCompleto() {
         setQuestions(data);
         const uniqueManuais = [
           ...new Set(
-            data.map((q) => (q.MANUAL || '').trim().toUpperCase()).filter(Boolean)
+            data.map((q) => (q.MANUAL || "").trim().toUpperCase()).filter(Boolean)
           ),
         ];
         setManuais(uniqueManuais);
@@ -539,7 +545,6 @@ export default function QuizAppCompleto() {
       .catch(() => setIsLoading(false));
   }, []);
 
-  // Timer
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) return;
     if (currentQuestionIndex < quiz.length) {
@@ -560,7 +565,7 @@ export default function QuizAppCompleto() {
 
   const handleTimeExpired = () => {
     const i = currentQuestionIndex;
-    setUserAnswers((prev) => ({ ...prev, [i]: 'TEMPO_EXPIRADO' }));
+    setUserAnswers((prev) => ({ ...prev, [i]: "TEMPO_EXPIRADO" }));
     if (i < quiz.length - 1) {
       setCurrentQuestionIndex(i + 1);
     } else {
@@ -568,13 +573,12 @@ export default function QuizAppCompleto() {
     }
   };
 
-  // maxQuestoesPossiveis para modo "igual"
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     const questoesPorTopico = selectedTopicos.map((topico) =>
       questions.filter(
         (q) =>
-          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+          (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       ).length
     );
@@ -583,13 +587,12 @@ export default function QuizAppCompleto() {
     return minQuestoesPorCategoria * selectedTopicos.length;
   }, [questions, selectedManual, selectedTopicos]);
 
-  // soma total para modo "total"
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
       const count = questions.filter(
         (q) =>
-          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+          (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       ).length;
       return acc + count;
@@ -598,21 +601,19 @@ export default function QuizAppCompleto() {
 
   const gerarQuiz = () => {
     if (!selectedManual) {
-      alert('Selecione um manual primeiro.');
+      alert("Selecione um manual primeiro.");
       return;
     }
     if (selectedTopicos.length === 0) {
-      alert('Selecione pelo menos um tópico.');
+      alert("Selecione pelo menos um tópico.");
       return;
     }
-
     let questoesSelecionadas = [];
-
-    if (modoDistribuicao === 'igual') {
+    if (modoDistribuicao === "igual") {
       const maxQuestoes = maxQuestoesPossiveis;
       const num = Math.min(numQuestoes, maxQuestoes);
       if (num === 0) {
-        alert('Não é possível gerar um quiz com 0 questões.');
+        alert("Não é possível gerar um quiz com 0 questões.");
         return;
       }
       const cotaBase = Math.floor(num / selectedTopicos.length);
@@ -622,19 +623,18 @@ export default function QuizAppCompleto() {
         let qtde = cotaBase + (idx < resto ? 1 : 0);
         const questoesCategoria = questions.filter(
           (q) =>
-            (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+            (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico
         );
         const selecionadas = shuffleArray(questoesCategoria).slice(0, qtde);
         questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
       });
       setQuiz(questoesSelecionadas);
-    } else {
-      // modo "total"
+    } else if (modoDistribuicao === "total") {
       const maxTotal = maxTotalQuestoes;
       const num = Math.min(numQuestoes, maxTotal);
       if (num === 0) {
-        alert('Não é possível gerar um quiz com 0 questões.');
+        alert("Não é possível gerar um quiz com 0 questões.");
         return;
       }
       let remaining = num;
@@ -642,7 +642,7 @@ export default function QuizAppCompleto() {
       selectedTopicos.forEach((topico) => {
         const count = questions.filter(
           (q) =>
-            (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+            (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico
         ).length;
         availability[topico] = count;
@@ -662,11 +662,11 @@ export default function QuizAppCompleto() {
         });
         categories = categories.filter((cat) => availability[cat] > 0);
       }
-      assignments && Object.keys(assignments).forEach((cat) => {
+      Object.keys(assignments).forEach((cat) => {
         const qty = assignments[cat];
         const questoesCategoria = questions.filter(
           (q) =>
-            (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+            (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === cat
         );
         const selecionadas = shuffleArray(questoesCategoria).slice(0, qty);
@@ -674,7 +674,6 @@ export default function QuizAppCompleto() {
       });
       setQuiz(questoesSelecionadas);
     }
-
     setCurrentQuestionIndex(0);
     setUserAnswers({});
     setShowResults(false);
@@ -704,15 +703,13 @@ export default function QuizAppCompleto() {
   };
 
   if (isLoading) {
-    return <div style={{ padding: '2rem' }}>Carregando...</div>;
+    return <div style={{ padding: "2rem" }}>Carregando...</div>;
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: "2rem" }}>
       <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
-
       {!quizIniciado && <Instrucoes />}
-
       {!quizIniciado && (
         <>
           <ManualSelector
@@ -742,7 +739,6 @@ export default function QuizAppCompleto() {
           )}
         </>
       )}
-
       {quizIniciado && quiz.length > 0 && !showResults && (
         <>
           {tempoAtivo && (
@@ -761,7 +757,6 @@ export default function QuizAppCompleto() {
           />
         </>
       )}
-
       {showResults && (
         <Resultados
           quiz={quiz}
@@ -772,4 +767,75 @@ export default function QuizAppCompleto() {
       )}
     </div>
   );
+}
+
+/** Componente para apresentação do quiz.
+ *  Se o modo de apresentação for "umPorVez", exibe apenas a questão atual.
+ *  Se for "acumulativo", exibe as questões anteriores (com efeito slide-down) e a atual com fade-in.
+ */
+function QuizPresentation({
+  quiz,
+  currentQuestionIndex,
+  userAnswers,
+  handleAnswer,
+  setCurrentQuestionIndex,
+  setShowResults,
+  tempoAtivo,
+  timer,
+  modoApresentacao
+}) {
+  if (modoApresentacao === "umPorVez") {
+    return (
+      <QuizQuestion
+        quiz={quiz}
+        currentQuestionIndex={currentQuestionIndex}
+        userAnswers={userAnswers}
+        handleAnswer={handleAnswer}
+        setCurrentQuestionIndex={setCurrentQuestionIndex}
+        setShowResults={setShowResults}
+        tempoAtivo={tempoAtivo}
+        timer={timer}
+        modoApresentacao={modoApresentacao}
+      />
+    );
+  } else {
+    return (
+      <div>
+        {quiz.slice(0, currentQuestionIndex).map((q, i) => {
+          const resposta = userAnswers[i];
+          let textoResposta = "-";
+          if (resposta === "TEMPO_EXPIRADO") {
+            textoResposta = "Tempo Esgotado → Errada";
+          } else if (resposta) {
+            textoResposta = q[`Alternativa ${resposta}`] || resposta;
+          }
+          return (
+            <div key={i} className="question-card balloon slide-down">
+              <p>
+                <strong>
+                  {i + 1}. {q.Questao}
+                </strong>
+              </p>
+              <div className="option">
+                <span>Resposta: {textoResposta}</span>
+              </div>
+            </div>
+          );
+        })}
+        {quiz[currentQuestionIndex] && (
+          <QuizQuestion
+            quiz={quiz}
+            currentQuestionIndex={currentQuestionIndex}
+            userAnswers={userAnswers}
+            handleAnswer={handleAnswer}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
+            setShowResults={setShowResults}
+            tempoAtivo={tempoAtivo}
+            timer={timer}
+            modoApresentacao={modoApresentacao}
+          />
+        )}
+      </div>
+    );
+  }
 }
