@@ -713,7 +713,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
+      <h1 className="title fade-in">Questões T-27M</h1>
 
       {!quizIniciado && <Instrucoes />}
 
