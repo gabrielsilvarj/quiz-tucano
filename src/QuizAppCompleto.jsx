@@ -152,6 +152,7 @@ function SeccoesSelector({
   );
 }
 
+/** Layout reformulado para o ConfigSelector, usando balões e inputs maiores */
 function ConfigSelector({
   questions,
   selectedManual,
@@ -170,6 +171,18 @@ function ConfigSelector({
   modoApresentacao,
   setModoApresentacao,
 }) {
+  // Para exibir o máximo total no modo "total"
+  const maxTotalQuestoes = useMemo(() => {
+    if (selectedTopicos.length === 0) return 0;
+    return selectedTopicos.reduce((acc, topico) => {
+      const count = questions.filter(
+        q => (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+             q.Subtópico === topico
+      ).length;
+      return acc + count;
+    }, 0);
+  }, [questions, selectedManual, selectedTopicos]);
+
   return (
     <div className="config-selector fade-in">
       <SeccoesSelector
@@ -178,59 +191,69 @@ function ConfigSelector({
         selectedTopicos={selectedTopicos}
         setSelectedTopicos={setSelectedTopicos}
       />
-      {/* Seleção do modo de distribuição */}
-      <div style={{ marginTop: '1rem' }}>
-        <label>Modo de Distribuição:</label>
-        <label style={{ marginLeft: '0.5rem' }}>
-          <input
-            type="radio"
-            name="modoDistribuicao"
-            value="igual"
-            checked={modoDistribuicao === 'igual'}
-            onChange={() => setModoDistribuicao('igual')}
-          />{' '}
-          Distribuição Igual
-        </label>
-        <label style={{ marginLeft: '0.5rem' }}>
-          <input
-            type="radio"
-            name="modoDistribuicao"
-            value="total"
-            checked={modoDistribuicao === 'total'}
-            onChange={() => setModoDistribuicao('total')}
-          />{' '}
-          Distribuição Total
-        </label>
+
+      {/* BALÃO: Modo de Distribuição */}
+      <div className="config-section balloon">
+        <h3 className="config-title">Modo de Distribuição</h3>
+        <div className="radio-group">
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="modoDistribuicao"
+              value="igual"
+              checked={modoDistribuicao === 'igual'}
+              onChange={() => setModoDistribuicao('igual')}
+            />
+            Distribuição Igual
+          </label>
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="modoDistribuicao"
+              value="total"
+              checked={modoDistribuicao === 'total'}
+              onChange={() => setModoDistribuicao('total')}
+            />
+            Distribuição Total
+          </label>
+        </div>
       </div>
-      {/* Seleção do modo de apresentação */}
-      <div style={{ marginTop: '1rem' }}>
-        <label>Modo de Apresentação:</label>
-        <label style={{ marginLeft: '0.5rem' }}>
-          <input
-            type="radio"
-            name="modoApresentacao"
-            value="umPorVez"
-            checked={modoApresentacao === 'umPorVez'}
-            onChange={() => setModoApresentacao('umPorVez')}
-          />{' '}
-          Uma questão por vez
-        </label>
-        <label style={{ marginLeft: '0.5rem' }}>
-          <input
-            type="radio"
-            name="modoApresentacao"
-            value="acumulativo"
-            checked={modoApresentacao === 'acumulativo'}
-            onChange={() => setModoApresentacao('acumulativo')}
-          />{' '}
-          Acumulativo (desliza anteriores)
-        </label>
+
+      {/* BALÃO: Modo de Apresentação */}
+      <div className="config-section balloon">
+        <h3 className="config-title">Modo de Apresentação</h3>
+        <div className="radio-group">
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="modoApresentacao"
+              value="umPorVez"
+              checked={modoApresentacao === 'umPorVez'}
+              onChange={() => setModoApresentacao('umPorVez')}
+            />
+            Uma questão por vez
+          </label>
+          <label className="radio-option">
+            <input
+              type="radio"
+              name="modoApresentacao"
+              value="acumulativo"
+              checked={modoApresentacao === 'acumulativo'}
+              onChange={() => setModoApresentacao('acumulativo')}
+            />
+            Acumulativo (desliza anteriores)
+          </label>
+        </div>
       </div>
-      {/* Input de quantidade de questões */}
-      <div style={{ marginTop: '1rem' }}>
+
+      {/* BALÃO: Quantidade de Questões */}
+      <div className="config-section balloon">
+        <h3 className="config-title">Quantidade de Questões</h3>
         {modoDistribuicao === 'igual' ? (
           <>
-            <label>Quantidade de questões (máx: {maxQuestoesPossiveis || 0}):</label>
+            <p style={{ marginBottom: '0.5rem' }}>
+              Máximo possível: <strong>{maxQuestoesPossiveis || 0}</strong>
+            </p>
             <input
               type="number"
               min={1}
@@ -239,60 +262,63 @@ function ConfigSelector({
               onChange={(e) => {
                 const valor = Number(e.target.value);
                 if (valor > (maxQuestoesPossiveis || 0)) {
-                  alert(
-                    `O máximo de questões permitidas é ${maxQuestoesPossiveis}.`
-                  );
+                  alert(`O máximo de questões permitidas é ${maxQuestoesPossiveis}.`);
                   setNumQuestoes(maxQuestoesPossiveis || 1);
                 } else {
                   setNumQuestoes(valor);
                 }
               }}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: '0.5rem', width: '80px' }}
+              className="number-input-large"
             />
           </>
         ) : (
           <>
-            <label>Quantidade de questões:</label>
+            <p style={{ marginBottom: '0.5rem' }}>
+              Máximo possível: <strong>{maxTotalQuestoes || 0}</strong>
+            </p>
             <input
               type="number"
               min={1}
               value={numQuestoes}
               onChange={(e) => setNumQuestoes(Number(e.target.value))}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: '0.5rem', width: '80px' }}
+              className="number-input-large"
             />
           </>
         )}
       </div>
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="checkbox"
-          id="tempoAtivo"
-          checked={tempoAtivo}
-          onChange={() => setTempoAtivo(!tempoAtivo)}
-        />{' '}
-        <label htmlFor="tempoAtivo">Ativar tempo por questão?</label>
-        {tempoAtivo && (
-          <>
-            <br />
-            <label>Tempo (em segundos): </label>
+
+      {/* BALÃO: Tempo por Questão */}
+      <div className="config-section balloon">
+        <h3 className="config-title">Tempo por Questão</h3>
+        <div className="checkbox-group">
+          <label className="radio-option">
+            <input
+              type="checkbox"
+              id="tempoAtivo"
+              checked={tempoAtivo}
+              onChange={() => setTempoAtivo(!tempoAtivo)}
+            />
+            Ativar tempo?
+          </label>
+          {tempoAtivo && (
             <input
               type="number"
               value={tempoLimite}
               onChange={(e) => setTempoLimite(Number(e.target.value))}
-              style={{ width: '80px', marginLeft: '0.5rem' }}
+              className="number-input-large"
             />
-          </>
-        )}
+          )}
+        </div>
       </div>
-      <button style={{ marginTop: '1rem' }} onClick={gerarQuiz}>
+
+      <button onClick={gerarQuiz} className="start-quiz-btn">
         Gerar Quiz
       </button>
     </div>
   );
 }
-
 /* --------------------
    MODO DE EXIBIÇÃO DAS QUESTÕES
 -------------------- */
