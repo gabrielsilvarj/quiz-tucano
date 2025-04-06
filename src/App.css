@@ -418,3 +418,16 @@ button:focus {
 .seccao-header.selected {
   background-color: var(--success-color); /* Defina --success-color na sua variável, por exemplo: #4CAF50 */
 }
+.background-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-image: url('./camuflagem-bg.png'); /* nome do arquivo da imagem gerada */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(8px) brightness(0.5); /* aplica blur e escurece */
+}
