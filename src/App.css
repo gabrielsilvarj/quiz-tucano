@@ -308,3 +308,51 @@ button:focus {
     width: 100px;
   }
 }
+/* Estilos para as seções de configurações em balões */
+.config-section {
+  margin-bottom: var(--spacing-medium);
+  padding: var(--spacing-medium);
+  border: 2px solid var(--primary-color);
+  border-radius: 12px;
+}
+
+.config-title {
+  margin-bottom: var(--spacing-small);
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-small);
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.number-input-large {
+  width: 120px;
+  font-size: 1rem;
+  padding: 0.3rem 0.5rem;
+}
+
+/* Estilo para o botão de iniciar o quiz */
+.start-quiz-btn {
+  margin-top: var(--spacing-small);
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.start-quiz-btn:hover {
+  background-color: var(--primary-hover);
+}
