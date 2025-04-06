@@ -52,7 +52,7 @@ function Instrucoes() {
         <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
         <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
         <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-        <li>As respostas poderão ser alteradas enquanto o tempo não expirar.</li>
+        <li>As respostas não podem ser alteradas após selecionadas.</li>
         <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
       </ul>
     </div>
@@ -112,8 +112,10 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
   const toggleSection = (secao, subtopicos) => {
     const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
     if (allSelected) {
+      // Remove todos os subtópicos da seção
       setSelectedTopicos(selectedTopicos.filter(s => !subtopicos.includes(s)));
     } else {
+      // Adiciona os que ainda não estiverem selecionados
       setSelectedTopicos(Array.from(new Set([...selectedTopicos, ...subtopicos])));
     }
   };
@@ -256,9 +258,8 @@ function QuizQuestion({
     }
   }, [currentQuestionIndex]);
 
-  // Adicionamos a propriedade key para forçar a remount do elemento
   return (
-    <div key={currentQuestionIndex} className={`question-card ${animClass}`}>
+    <div className={`question-card ${animClass}`}>
       <div>
         <p>
           <strong>
@@ -273,7 +274,7 @@ function QuizQuestion({
               name={`questao-${currentQuestionIndex}`}
               checked={userAnswers[currentQuestionIndex] === letra}
               onChange={() => handleAnswer(letra)}
-              disabled={false}  // Permite mudar de resposta enquanto houver tempo
+              disabled={userAnswers[currentQuestionIndex] !== undefined}
             />
             <label htmlFor={`option-${currentQuestionIndex}-${letra}`}>
               {letra}) {quiz[currentQuestionIndex][`Alternativa ${letra}`]}
@@ -483,8 +484,9 @@ export default function QuizAppCompleto() {
 
   const handleAnswer = (letra) => {
     const i = currentQuestionIndex;
-    // Permite alterar a resposta a qualquer momento, mesmo que já haja uma resposta
-    setUserAnswers(prev => ({ ...prev, [i]: letra }));
+    if (!userAnswers[i]) {
+      setUserAnswers(prev => ({ ...prev, [i]: letra }));
+    }
   };
 
   const calcularPontuacao = () => {
@@ -509,7 +511,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
+      <h1 className="title fade-in">Estudo T-27M</h1>
       {!quizIniciado && <Instrucoes />}
       {!quizIniciado && (
         <>
@@ -539,7 +541,9 @@ export default function QuizAppCompleto() {
       {quizIniciado && quiz.length > 0 && !showResults && (
         <>
           {tempoAtivo && (
-            <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
+            <h3 className="timer fade-in">
+              Tempo restante: {timer}s
+            </h3>
           )}
           <QuizQuestion
             quiz={quiz}
