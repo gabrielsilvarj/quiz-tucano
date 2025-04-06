@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import './App.css'; // Import do CSS
 
 export default function QuizAppCompleto() {
   const [questions, setQuestions] = useState([]);
