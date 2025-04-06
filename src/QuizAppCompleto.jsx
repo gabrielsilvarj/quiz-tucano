@@ -48,6 +48,7 @@ function Instrucoes() {
         <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
         <li>As respostas poderão ser alteradas enquanto o tempo não expirar ou se não houver tempo definido.</li>
         <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
+        <li>As respostas não serão armazenadas em nenhum banco de dados.</li>
       </ul>
     </div>
   );
@@ -203,7 +204,7 @@ function ConfigSelector({
               checked={modoDistribuicao === 'igual'}
               onChange={() => setModoDistribuicao('igual')}
             />
-            Distribuição Igual
+            Igual entre subtópicos
           </label>
           <label className="radio-option">
             <input
@@ -213,7 +214,7 @@ function ConfigSelector({
               checked={modoDistribuicao === 'total'}
               onChange={() => setModoDistribuicao('total')}
             />
-            Distribuição Total
+            Privilegiar quantidade total
           </label>
         </div>
       </div>
@@ -240,7 +241,7 @@ function ConfigSelector({
               checked={modoApresentacao === 'acumulativo'}
               onChange={() => setModoApresentacao('acumulativo')}
             />
-            Acumulativo (desliza anteriores)
+            Acumulativo (mantém anteriores)
           </label>
         </div>
       </div>
