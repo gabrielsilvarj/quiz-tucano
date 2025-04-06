@@ -373,6 +373,9 @@ export default function QuizAppCompleto() {
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
   const timerRef = useRef(null);
+
+  // Importante: por padrão, transformamos o MANUAL em uppercase ao salvar em 'manuais'.
+  // O "Subtópico" ainda pode estar com grafia original. Vamos manter a coerência para comparar no filter.
   const sheetUrl = 'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
 
   useEffect(() => {
@@ -380,6 +383,7 @@ export default function QuizAppCompleto() {
       .then(res => res.json())
       .then(data => {
         setQuestions(data);
+        // Normalizar o MANUAL para uppercase
         const uniqueManuais = [
           ...new Set(
             data.map(q => (q.MANUAL || '').trim().toUpperCase()).filter(Boolean)
@@ -391,6 +395,7 @@ export default function QuizAppCompleto() {
       .catch(() => setIsLoading(false));
   }, []);
 
+  // Inicia/atualiza o timer se estiver ativo
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) return;
     if (currentQuestionIndex < quiz.length) {
@@ -419,15 +424,20 @@ export default function QuizAppCompleto() {
     }
   };
 
+  // 2. Normalizar texto em ambos os lados (Manual / Subtópico).
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
-    const questoesPorTopico = selectedTopicos.map(topico =>
-      questions.filter(
-        q =>
-          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-          q.Subtópico === topico
-      ).length
-    );
+
+    const questoesPorTopico = selectedTopicos.map(topico => {
+      const topicoTrim = (topico || '').trim().toUpperCase();
+      return questions.filter(q => {
+        const manualTrim = (q.MANUAL || '').trim().toUpperCase();
+        const subtopicoTrim = (q.Subtópico || '').trim().toUpperCase();
+        return manualTrim === selectedManual && subtopicoTrim === topicoTrim;
+      }).length;
+    });
+
+    // Se todos forem 0 ou o array estiver vazio, retorna 0
     if (questoesPorTopico.length === 0) return 0;
     const minQuestoesPorCategoria = Math.min(...questoesPorTopico);
     return minQuestoesPorCategoria * selectedTopicos.length;
@@ -442,26 +452,36 @@ export default function QuizAppCompleto() {
       alert('Selecione pelo menos um tópico.');
       return;
     }
+
     const maxQuestoes = maxQuestoesPossiveis;
     const num = Math.min(numQuestoes, maxQuestoes);
     if (num === 0) {
       alert('Não é possível gerar um quiz com 0 questões.');
       return;
     }
+
+    // Gera a lista final de questões
     let questoesSelecionadas = [];
     const cotaBase = Math.floor(num / selectedTopicos.length);
     const resto = num % selectedTopicos.length;
+
+    // Embaralha os subtópicos para distribuir o "resto"
     const topicosEmbaralhados = shuffleArray(selectedTopicos);
+
     topicosEmbaralhados.forEach((topico, idx) => {
+      const topicoTrim = (topico || '').trim().toUpperCase();
+
       let qtde = cotaBase + (idx < resto ? 1 : 0);
-      const questoesCategoria = questions.filter(
-        q =>
-          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-          q.Subtópico === topico
-      );
+      const questoesCategoria = questions.filter(q => {
+        const manualTrim = (q.MANUAL || '').trim().toUpperCase();
+        const subtopicoTrim = (q.Subtópico || '').trim().toUpperCase();
+        return manualTrim === selectedManual && subtopicoTrim === topicoTrim;
+      });
+
       const selecionadas = shuffleArray(questoesCategoria).slice(0, qtde);
       questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
     });
+
     setQuiz(questoesSelecionadas);
     setCurrentQuestionIndex(0);
     setUserAnswers({});
@@ -499,10 +519,10 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">
-         Teste de conhecimento
-         T-27M (1º EIA)</h1>
+      <h1 className="title fade-in">Teste de conhecimento T-27M (1º EIA)</h1>
+
       {!quizIniciado && <Instrucoes />}
+
       {!quizIniciado && (
         <>
           <ManualSelector
@@ -528,6 +548,7 @@ export default function QuizAppCompleto() {
           )}
         </>
       )}
+
       {quizIniciado && quiz.length > 0 && !showResults && (
         <>
           {tempoAtivo && (
@@ -543,6 +564,7 @@ export default function QuizAppCompleto() {
           />
         </>
       )}
+
       {showResults && (
         <Resultados
           quiz={quiz}
