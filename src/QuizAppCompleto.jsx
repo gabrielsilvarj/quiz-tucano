@@ -788,6 +788,5 @@ export default function QuizAppCompleto() {
       )}
     </div>
     </div>
-  </>
 );
 }
