@@ -171,17 +171,36 @@ function ConfigSelector({
   setModoDistribuicao,
   modoApresentacao,
   setModoApresentacao,
+  nivelDificuldade,
+  setNivelDificuldade,
 }) {
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
       const count = questions.filter(
-        q => (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-             q.Subtópico === topico
+        q =>
+          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+          q.Subtópico === topico &&
+          (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
       ).length;
       return acc + count;
     }, 0);
-  }, [questions, selectedManual, selectedTopicos]);
+  }, [questions, selectedManual, selectedTopicos, nivelDificuldade]);
+
+  const maxQuestoesFiltradas = useMemo(() => {
+    if (selectedTopicos.length === 0) return 0;
+    const questoesFiltradas = questions.filter(
+      q =>
+        (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+        selectedTopicos.includes(q.Subtópico) &&
+        (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+    );
+    const questoesPorTopico = selectedTopicos.map(topico =>
+      questoesFiltradas.filter(q => q.Subtópico === topico).length
+    );
+    if (questoesPorTopico.length === 0) return 0;
+    return Math.min(...questoesPorTopico) * selectedTopicos.length;
+  }, [questions, selectedManual, selectedTopicos, nivelDificuldade]);
 
   return (
     <div className="config-selector fade-in">
@@ -191,6 +210,25 @@ function ConfigSelector({
         selectedTopicos={selectedTopicos}
         setSelectedTopicos={setSelectedTopicos}
       />
+
+      {/* BALÃO: Nível de Dificuldade */}
+      <div className="config-section balloon">
+        <h3 className="config-title">Nível de Dificuldade</h3>
+        <div className="radio-group">
+          {['Todos', 'Fácil', 'Médio', 'Difícil'].map((nivel) => (
+            <label key={nivel} className="radio-option">
+              <input
+                type="radio"
+                name="nivelDificuldade"
+                value={nivel}
+                checked={nivelDificuldade === nivel}
+                onChange={() => setNivelDificuldade(nivel)}
+              />
+              {nivel}
+            </label>
+          ))}
+        </div>
+      </div>
 
       {/* BALÃO: Modo de Distribuição */}
       <div className="config-section balloon">
@@ -252,18 +290,18 @@ function ConfigSelector({
         {modoDistribuicao === 'igual' ? (
           <>
             <p style={{ marginBottom: '0.5rem' }}>
-              Máximo possível: <strong>{maxQuestoesPossiveis || 0}</strong>
+              Máximo possível: <strong>{maxQuestoesFiltradas || 0}</strong>
             </p>
             <input
               type="number"
               min={1}
-              max={maxQuestoesPossiveis || 1}
+              max={maxQuestoesFiltradas || 1}
               value={numQuestoes}
               onChange={(e) => {
                 const valor = Number(e.target.value);
-                if (valor > (maxQuestoesPossiveis || 0)) {
-                  alert(`O máximo de questões permitidas é ${maxQuestoesPossiveis}.`);
-                  setNumQuestoes(maxQuestoesPossiveis || 1);
+                if (valor > (maxQuestoesFiltradas || 0)) {
+                  alert(`O máximo de questões permitidas é ${maxQuestoesFiltradas}.`);
+                  setNumQuestoes(maxQuestoesFiltradas || 1);
                 } else {
                   setNumQuestoes(valor);
                 }
@@ -319,11 +357,11 @@ function ConfigSelector({
     </div>
   );
 }
+
 /* --------------------
    MODO DE EXIBIÇÃO DAS QUESTÕES
 -------------------- */
 
-/** Exibe **apenas** a questão atual, com fade-in (sem flip-in) */
 function QuizQuestion({
   quiz,
   currentQuestionIndex,
@@ -509,23 +547,19 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
   );
 }
 
-/* --------------------
-   COMPONENTE PRINCIPAL
--------------------- */
-
 export default function QuizAppCompleto() {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [manuais, setManuais] = useState([]);
   const [selectedManual, setSelectedManual] = useState('');
-  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState(
-    'quizSelectedTopicos',
-    []
-  );
+  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState('quizSelectedTopicos', []);
   const [numQuestoes, setNumQuestoes] = useLocalStorageState('quizNumQuestoes', 10);
   const [tempoAtivo, setTempoAtivo] = useLocalStorageState('quizTempoAtivo', false);
   const [tempoLimite, setTempoLimite] = useLocalStorageState('quizTempoLimite', 30);
+  
+  // Novo estado para nível de dificuldade (default "Todos")
+  const [nivelDificuldade, setNivelDificuldade] = useLocalStorageState('quizNivelDificuldade', 'Todos');
 
   const [timer, setTimer] = useState(tempoLimite);
   const [quiz, setQuiz] = useState([]);
@@ -538,8 +572,7 @@ export default function QuizAppCompleto() {
   const [modoApresentacao, setModoApresentacao] = useState('umPorVez');
 
   const timerRef = useRef(null);
-  const sheetUrl =
-    'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
+  const sheetUrl = 'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
 
   useEffect(() => {
     fetch(sheetUrl)
@@ -587,29 +620,31 @@ export default function QuizAppCompleto() {
 
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
-    const questoesPorTopico = selectedTopicos.map((topico) =>
-      questions.filter(
-        (q) =>
-          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-          q.Subtópico === topico
-      ).length
+    const questoesFiltradas = questions.filter(
+      q =>
+        (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+        selectedTopicos.includes(q.Subtópico) &&
+        (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+    );
+    const questoesPorTopico = selectedTopicos.map(topico =>
+      questoesFiltradas.filter(q => q.Subtópico === topico).length
     );
     if (questoesPorTopico.length === 0) return 0;
-    const minQuestoesPorCategoria = Math.min(...questoesPorTopico);
-    return minQuestoesPorCategoria * selectedTopicos.length;
-  }, [questions, selectedManual, selectedTopicos]);
+    return Math.min(...questoesPorTopico) * selectedTopicos.length;
+  }, [questions, selectedManual, selectedTopicos, nivelDificuldade]);
 
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
       const count = questions.filter(
-        (q) =>
+        q =>
           (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-          q.Subtópico === topico
+          q.Subtópico === topico &&
+          (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
       ).length;
       return acc + count;
     }, 0);
-  }, [questions, selectedManual, selectedTopicos]);
+  }, [questions, selectedManual, selectedTopicos, nivelDificuldade]);
 
   const gerarQuiz = () => {
     if (!selectedManual) {
@@ -636,9 +671,10 @@ export default function QuizAppCompleto() {
       topicosEmbaralhados.forEach((topico, idx) => {
         let qtde = cotaBase + (idx < resto ? 1 : 0);
         const questoesCategoria = questions.filter(
-          (q) =>
+          q =>
             (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-            q.Subtópico === topico
+            q.Subtópico === topico &&
+            (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
         );
         const selecionadas = shuffleArray(questoesCategoria).slice(0, qtde);
         questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
@@ -655,9 +691,10 @@ export default function QuizAppCompleto() {
       const availability = {};
       selectedTopicos.forEach((topico) => {
         const count = questions.filter(
-          (q) =>
+          q =>
             (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-            q.Subtópico === topico
+            q.Subtópico === topico &&
+            (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
         ).length;
         availability[topico] = count;
       });
@@ -680,9 +717,10 @@ export default function QuizAppCompleto() {
         Object.keys(assignments).forEach((cat) => {
           const qty = assignments[cat];
           const questoesCategoria = questions.filter(
-            (q) =>
+            q =>
               (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-              q.Subtópico === cat
+              q.Subtópico === cat &&
+              (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
           );
           const selecionadas = shuffleArray(questoesCategoria).slice(0, qty);
           questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
@@ -722,72 +760,74 @@ export default function QuizAppCompleto() {
     return <div style={{ padding: '2rem' }}>Carregando...</div>;
   }
 
-return (
-  <>
-    {!quizIniciado && <div className="background-image" />}
-    <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Questões T-27M</h1>
+  return (
+    <>
+      {!quizIniciado && <div className="background-image" />}
+      <div style={{ padding: '2rem' }}>
+        <h1 className="title fade-in">Questões T-27M</h1>
 
-      {!quizIniciado && <Instrucoes />}
+        {!quizIniciado && <Instrucoes />}
 
-      {!quizIniciado && (
-        <>
-          <ManualSelector
-            manuais={manuais}
-            selectedManual={selectedManual}
-            setSelectedManual={setSelectedManual}
-          />
-          {selectedManual && !showResults && (
-            <ConfigSelector
-              questions={questions}
+        {!quizIniciado && (
+          <>
+            <ManualSelector
+              manuais={manuais}
               selectedManual={selectedManual}
-              selectedTopicos={selectedTopicos}
-              setSelectedTopicos={setSelectedTopicos}
-              numQuestoes={numQuestoes}
-              setNumQuestoes={setNumQuestoes}
-              maxQuestoesPossiveis={maxQuestoesPossiveis}
-              tempoAtivo={tempoAtivo}
-              setTempoAtivo={setTempoAtivo}
-              tempoLimite={tempoLimite}
-              setTempoLimite={setTempoLimite}
-              gerarQuiz={gerarQuiz}
-              modoDistribuicao={modoDistribuicao}
-              setModoDistribuicao={setModoDistribuicao}
-              modoApresentacao={modoApresentacao}
-              setModoApresentacao={setModoApresentacao}
+              setSelectedManual={setSelectedManual}
             />
-          )}
-        </>
-      )}
+            {selectedManual && !showResults && (
+              <ConfigSelector
+                questions={questions}
+                selectedManual={selectedManual}
+                selectedTopicos={selectedTopicos}
+                setSelectedTopicos={setSelectedTopicos}
+                numQuestoes={numQuestoes}
+                setNumQuestoes={setNumQuestoes}
+                maxQuestoesPossiveis={maxQuestoesPossiveis}
+                tempoAtivo={tempoAtivo}
+                setTempoAtivo={setTempoAtivo}
+                tempoLimite={tempoLimite}
+                setTempoLimite={setTempoLimite}
+                gerarQuiz={gerarQuiz}
+                modoDistribuicao={modoDistribuicao}
+                setModoDistribuicao={setModoDistribuicao}
+                modoApresentacao={modoApresentacao}
+                setModoApresentacao={setModoApresentacao}
+                nivelDificuldade={nivelDificuldade}
+                setNivelDificuldade={setNivelDificuldade}
+              />
+            )}
+          </>
+        )}
 
-      {quizIniciado && quiz.length > 0 && !showResults && (
-        <>
-          {tempoAtivo && (
-            <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
-          )}
-          <QuizPresentation
+        {quizIniciado && quiz.length > 0 && !showResults && (
+          <>
+            {tempoAtivo && (
+              <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
+            )}
+            <QuizPresentation
+              quiz={quiz}
+              currentQuestionIndex={currentQuestionIndex}
+              userAnswers={userAnswers}
+              handleAnswer={handleAnswer}
+              setCurrentQuestionIndex={setCurrentQuestionIndex}
+              setShowResults={setShowResults}
+              tempoAtivo={tempoAtivo}
+              timer={timer}
+              modoApresentacao={modoApresentacao}
+            />
+          </>
+        )}
+
+        {showResults && (
+          <Resultados
             quiz={quiz}
-            currentQuestionIndex={currentQuestionIndex}
             userAnswers={userAnswers}
-            handleAnswer={handleAnswer}
-            setCurrentQuestionIndex={setCurrentQuestionIndex}
-            setShowResults={setShowResults}
-            tempoAtivo={tempoAtivo}
-            timer={timer}
-            modoApresentacao={modoApresentacao}
+            calcularPontuacao={calcularPontuacao}
+            onFazerNovaProva={handleFazerNovaProva}
           />
-        </>
-      )}
-
-      {showResults && (
-        <Resultados
-          quiz={quiz}
-          userAnswers={userAnswers}
-          calcularPontuacao={calcularPontuacao}
-          onFazerNovaProva={handleFazerNovaProva}
-        />
-      )}
-    </div>
-  </>
-);
+        )}
+      </div>
+    </>
+  );
 }
