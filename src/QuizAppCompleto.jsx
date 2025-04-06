@@ -121,7 +121,7 @@ function SeccoesSelector({
         );
         return (
           <div key={secao} className="seccao-group">
-            <div className="seccao-header">
+            <div className={`seccao-header ${allSelected ? 'selected' : ''}`}>
               <input
                 type="checkbox"
                 id={`secao-${secao}`}
@@ -171,7 +171,6 @@ function ConfigSelector({
   modoApresentacao,
   setModoApresentacao,
 }) {
-  // Para exibir o máximo total no modo "total"
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
@@ -335,11 +334,9 @@ function QuizQuestion({
   timer
 }) {
   const { Questao } = quiz[currentQuestionIndex];
-  // Sempre fade-in
   const [animClass, setAnimClass] = useState('fade-in');
 
   useEffect(() => {
-    // Sempre redefine para fade-in quando currentQuestionIndex muda
     setAnimClass('fade-in');
   }, [currentQuestionIndex]);
 
@@ -392,10 +389,6 @@ function QuizQuestion({
   );
 }
 
-/** No modo "acumulativo", mostra as anteriores + atual.
- *  As anteriores recebem classe "slide-down" e a atual recebe "fade-in".
- *  As anteriores exibem o texto completo da alternativa que o usuário escolheu.
- */
 function QuizPresentation({
   quiz,
   currentQuestionIndex,
@@ -422,7 +415,6 @@ function QuizPresentation({
     );
   }
 
-  // modo acumulativo
   return (
     <div>
       {quiz.slice(0, currentQuestionIndex).map((q, i) => {
@@ -445,7 +437,6 @@ function QuizPresentation({
         );
       })}
 
-      {/* Exibe a questão atual com fade-in */}
       {quiz[currentQuestionIndex] && (
         <QuizQuestion
           quiz={quiz}
@@ -462,7 +453,6 @@ function QuizPresentation({
   );
 }
 
-/** Exibe os resultados */
 function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) {
   const [animClass, setAnimClass] = useState('fade-in');
 
@@ -543,9 +533,7 @@ export default function QuizAppCompleto() {
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
 
-  // Modo de distribuição: "igual" ou "total"
   const [modoDistribuicao, setModoDistribuicao] = useState('igual');
-  // Modo de apresentação: "umPorVez" ou "acumulativo"
   const [modoApresentacao, setModoApresentacao] = useState('umPorVez');
 
   const timerRef = useRef(null);
@@ -568,7 +556,6 @@ export default function QuizAppCompleto() {
       .catch(() => setIsLoading(false));
   }, []);
 
-  // Lógica do Timer
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) return;
     if (currentQuestionIndex < quiz.length) {
@@ -597,7 +584,6 @@ export default function QuizAppCompleto() {
     }
   };
 
-  // Cálculo do máximo de questões no modo "igual"
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     const questoesPorTopico = selectedTopicos.map((topico) =>
@@ -612,7 +598,6 @@ export default function QuizAppCompleto() {
     return minQuestoesPorCategoria * selectedTopicos.length;
   }, [questions, selectedManual, selectedTopicos]);
 
-  // Soma total de questões no modo "total"
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
@@ -659,7 +644,6 @@ export default function QuizAppCompleto() {
       });
       setQuiz(questoesSelecionadas);
     } else {
-      // modo "total"
       const maxTotal = maxTotalQuestoes;
       const num = Math.min(numQuestoes, maxTotal);
       if (num === 0) {
