@@ -134,7 +134,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-<div style={{ marginBottom: '1rem', backgroundColor: '#f0f0f0', padding: '1rem', borderRadius: '8px' }}>
+<div className="instructions">
   <h2>Instruções:</h2>
   <ul>
     <li>Selecione o manual e os tópicos que deseja estudar.</li>
@@ -144,7 +144,8 @@ export default function QuizAppCompleto() {
     <li>As respostas não podem ser alteradas após selecionadas.</li>
     <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
   </ul>
-</div>     
+</div>
+    
       <h1>Quiz Interativo</h1>
 
       {!quizIniciado && (
