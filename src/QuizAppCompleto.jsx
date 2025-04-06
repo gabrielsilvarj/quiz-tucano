@@ -405,19 +405,23 @@ export default function QuizAppCompleto() {
   useEffect(() => {
     fetch(sheetUrl)
       .then(res => res.json())
-      .then(data => {
-        setQuestions(data);
+     .then(data => {
+  const dadosNormalizados = data.map(q => ({
+    ...q,
+    MANUAL: (q.MANUAL || '').trim().toUpperCase(),
+    Subtópico: (q.Subtópico || '').trim().toUpperCase(),
+    Seção: (q.Seção || '').trim()
+  }));
 
-        // Normalizamos o MANUAL para uppercase
-        const uniqueManuais = [
-          ...new Set(
-            data
-              .map(q => (q.MANUAL || '').trim().toUpperCase())
-              .filter(Boolean)
-          ),
-        ];
-        setManuais(uniqueManuais);
-        setIsLoading(false);
+  setQuestions(dadosNormalizados);
+
+  const uniqueManuais = Array.from(new Set(dadosNormalizados.map(q => q.MANUAL)));
+  setManuais(uniqueManuais);
+  setIsLoading(false);
+
+  console.log('Dados normalizados:', dadosNormalizados.slice(0, 5));
+})
+
 
         // LOG do que veio do banco
         console.log('DEBUG -> questions (primeiras 5):', data.slice(0, 5));
@@ -432,25 +436,34 @@ export default function QuizAppCompleto() {
   /* -----------------------------------------------------
      (B) Timer
   ----------------------------------------------------- */
-  useEffect(() => {
-    if (!tempoAtivo || showResults || quiz.length === 0) return;
-    if (currentQuestionIndex < quiz.length) {
-      setTimer(tempoLimite);
-      if (timerRef.current) clearInterval(timerRef.current);
+  const handleTimeExpired = useCallback(() => {
+  const i = currentQuestionIndex;
+  setUserAnswers(prev => ({ ...prev, [i]: 'TEMPO_EXPIRADO' }));
+  if (i < quiz.length - 1) {
+    setCurrentQuestionIndex(i + 1);
+  } else {
+    setShowResults(true);
+  }
+}, [currentQuestionIndex, quiz.length]);
 
-      timerRef.current = setInterval(() => {
-        setTimer(prev => {
-          if (prev <= 1) {
-            handleTimeExpired();
-            return tempoLimite;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+useEffect(() => {
+  if (!tempoAtivo || showResults || quiz.length === 0) return;
 
-      return () => clearInterval(timerRef.current);
-    }
-  }, [currentQuestionIndex, tempoAtivo, showResults, quiz, tempoLimite]);
+  setTimer(tempoLimite);
+  if (timerRef.current) clearInterval(timerRef.current);
+
+  timerRef.current = setInterval(() => {
+    setTimer(prev => {
+      if (prev <= 1) {
+        handleTimeExpired();
+        return tempoLimite;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => clearInterval(timerRef.current);
+}, [currentQuestionIndex, tempoAtivo, showResults, quiz.length, tempoLimite, handleTimeExpired]);
 
   function handleTimeExpired() {
     const i = currentQuestionIndex;
@@ -466,41 +479,19 @@ export default function QuizAppCompleto() {
      (C) Cálculo do máximo de questões
   ----------------------------------------------------- */
   const maxQuestoesPossiveis = useMemo(() => {
-    if (selectedTopicos.length === 0) {
-      console.log('DEBUG -> Sem tópicos selecionados => 0');
-      return 0;
-    }
+  if (!selectedManual || selectedTopicos.length === 0 || questions.length === 0) {
+    return 0;
+  }
 
-    const questoesPorTopico = selectedTopicos.map(topico => {
-      // Normalização
-      const topicoTrim = (topico || '').trim().toUpperCase();
+  const quantidades = selectedTopicos.map(topico =>
+    questions.filter(
+      q => q.MANUAL === selectedManual && q.Subtópico === topico.toUpperCase()
+    ).length
+  );
 
-      // Filtra quantas questões batem manual + subtópico
-      const n = questions.filter(q => {
-        const manualTrim = (q.MANUAL || '').trim().toUpperCase();
-        const subtopTrim = (q.Subtópico || '').trim().toUpperCase();
-
-        return manualTrim === selectedManual && subtopTrim === topicoTrim;
-      }).length;
-
-      // Mostra no console cada subtópico e quantas questões encontrou
-      console.log(`DEBUG -> Subtópico "${topicoTrim}" => encontrou ${n} questoes.`);
-      return n;
-    });
-
-    // Se todos forem 0 ou o array estiver vazio, retorna 0
-    if (questoesPorTopico.length === 0) {
-      console.log('DEBUG -> questoesPorTopico.length === 0 => 0');
-      return 0;
-    }
-
-    const minQuestoesPorCategoria = Math.min(...questoesPorTopico);
-    const result = minQuestoesPorCategoria * selectedTopicos.length;
-    console.log('DEBUG -> minQuestoesPorCategoria =', minQuestoesPorCategoria,
-      ' => maxQuestoesPossiveis =', result);
-
-    return result;
-  }, [questions, selectedManual, selectedTopicos]);
+  const minPorCategoria = Math.min(...quantidades);
+  return minPorCategoria * selectedTopicos.length;
+}, [questions, selectedManual, selectedTopicos]);
 
   /* -----------------------------------------------------
      (D) Gera o quiz final
@@ -557,12 +548,15 @@ export default function QuizAppCompleto() {
   /* -----------------------------------------------------
      (E) Lógica de Seleção de Resposta
   ----------------------------------------------------- */
-  function handleAnswer(letra) {
+  const handleAnswer = useCallback(
+  letra => {
     const i = currentQuestionIndex;
     if (!userAnswers[i]) {
       setUserAnswers(prev => ({ ...prev, [i]: letra }));
     }
-  }
+  },
+  [currentQuestionIndex, userAnswers]
+);
 
   function calcularPontuacao() {
     let score = 0;
