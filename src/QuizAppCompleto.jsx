@@ -721,9 +721,9 @@ export default function QuizAppCompleto() {
     return <div style={{ padding: '2rem' }}>Carregando...</div>;
   }
 
-  return (
+return (
   <>
-    <div className="background-image" />
+    {!quizIniciado && <div className="background-image" />}
     <div style={{ padding: '2rem' }}>
       <h1 className="title fade-in">Questões T-27M</h1>
 
@@ -787,5 +787,6 @@ export default function QuizAppCompleto() {
         />
       )}
     </div>
+  </>
 );
 }
