@@ -200,7 +200,6 @@ function ConfigSelector({
             }
           }}
           disabled={selectedTopicos.length === 0}
-          /* Ajuste de largura para celular */
           style={{ marginLeft: '0.5rem', width: '80px' }}
         />
       </div>
@@ -220,7 +219,6 @@ function ConfigSelector({
               type="number"
               value={tempoLimite}
               onChange={e => setTempoLimite(Number(e.target.value))}
-              /* Ajuste de largura para celular */
               style={{ width: '80px', marginLeft: '0.5rem' }}
             />
           </>
@@ -237,7 +235,10 @@ function ConfigSelector({
    COMPONENTES DO QUIZ
 -------------------- */
 
-/** Exibe a questão atual com animação de fade-in */
+/** Exibe a questão atual com animação de transição:
+ *  - Usa fade-in na primeira questão;
+ *  - Usa flip-in para as transições subsequentes.
+ */
 function QuizQuestion({
   quiz,
   currentQuestionIndex,
@@ -250,7 +251,11 @@ function QuizQuestion({
   const [animClass, setAnimClass] = useState('fade-in');
 
   useEffect(() => {
-    setAnimClass('fade-in');
+    if (currentQuestionIndex === 0) {
+      setAnimClass('fade-in');
+    } else {
+      setAnimClass('flip-in');
+    }
   }, [currentQuestionIndex]);
 
   return (
@@ -426,7 +431,6 @@ export default function QuizAppCompleto() {
 
   // Cálculo dos tópicos disponíveis não é mais necessário,
   // pois a seleção será feita via agrupamento por seção.
-
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     const questoesPorTopico = selectedTopicos.map(topico =>
@@ -488,9 +492,7 @@ export default function QuizAppCompleto() {
   const calcularPontuacao = () => {
     let score = 0;
     quiz.forEach((q, i) => {
-      if (userAnswers[i] === q.Correta) {
-        score += 1;
-      }
+      if (userAnswers[i] === q.Correta) score += 1;
     });
     return score;
   };
@@ -509,7 +511,7 @@ export default function QuizAppCompleto() {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1 className="title fade-in">Estudo T-27M</h1>
+      <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
       {!quizIniciado && <Instrucoes />}
       {!quizIniciado && (
         <>
@@ -539,7 +541,9 @@ export default function QuizAppCompleto() {
       {quizIniciado && quiz.length > 0 && !showResults && (
         <>
           {tempoAtivo && (
-            <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
+            <h3 className="timer fade-in">
+              Tempo restante: {timer}s
+            </h3>
           )}
           <QuizQuestion
             quiz={quiz}
