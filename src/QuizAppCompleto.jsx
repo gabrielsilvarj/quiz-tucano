@@ -25,7 +25,6 @@ function useLocalStorageState(key, defaultValue) {
       return defaultValue;
     }
   });
-
   useEffect(() => {
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
@@ -33,7 +32,6 @@ function useLocalStorageState(key, defaultValue) {
       // Ignora erros em ambientes privados
     }
   }, [key, state]);
-
   return [state, setState];
 }
 
@@ -41,7 +39,7 @@ function useLocalStorageState(key, defaultValue) {
    COMPONENTES DE SELEÇÃO
 -------------------- */
 
-/** Exibe as instruções iniciais */
+/** Instruções iniciais */
 function Instrucoes() {
   return (
     <div className="instructions-box fade-in">
@@ -70,7 +68,7 @@ function Instrucoes() {
   );
 }
 
-/** Permite selecionar o manual desejado */
+/** Seleção do manual */
 function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   return (
     <>
@@ -90,9 +88,7 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-/** Exibe as seções e seus subtópicos agrupados.
- * Se uma seção for selecionada, todos os seus subtópicos serão marcados.
- */
+/** Exibe as seções e seus subtópicos agrupados */
 function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
   const seccoes = useMemo(() => {
     const filtered = questions.filter(
@@ -100,7 +96,7 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
     );
     const groups = {};
     filtered.forEach((q) => {
-      const secao = q.Seção; // ajuste conforme seu campo real
+      const secao = q.Seção; // ajuste conforme o campo real
       const subtitulo = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
       groups[secao].add(subtitulo);
@@ -166,7 +162,7 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
   );
 }
 
-/** Combina a seleção de seções/subtópicos com as configurações do quiz */
+/** Configurações do quiz, incluindo modos de distribuição e apresentação */
 function ConfigSelector({
   questions,
   selectedManual,
@@ -185,6 +181,16 @@ function ConfigSelector({
   modoApresentacao,
   setModoApresentacao
 }) {
+  // Calcula o total de questões disponíveis para o modo "total"
+  const totalDisponivel = selectedTopicos.reduce((total, topico) => {
+    const count = questions.filter(
+      (q) =>
+        (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
+        q.Subtópico === topico
+    ).length;
+    return total + count;
+  }, 0);
+
   return (
     <div className="config-selector fade-in">
       <SeccoesSelector
@@ -269,18 +275,7 @@ function ConfigSelector({
         ) : (
           <>
             <label>
-              Quantidade de questões (máx:{" "}
-              {
-                selectedTopicos.reduce((total, topico) => {
-                  const count = questions.filter(
-                    (q) =>
-                      (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
-                      q.Subtópico === topico
-                  ).length;
-                  return total + count;
-                }, 0)
-              }
-              ):
+              Quantidade de questões (máx: {totalDisponivel}):
             </label>
             <input
               type="number"
@@ -325,11 +320,10 @@ function ConfigSelector({
    COMPONENTES DO QUIZ
 -------------------- */
 
-/** Componente que exibe a questão atual.
- *  Se o modo de apresentação for "umPorVez", mostra apenas a questão atual.
- *  Se for "acumulativo", renderiza as questões anteriores (com efeito slide-down)
- *  e a atual com fade-in.
- *  As questões são enquadradas com a classe "balloon" para bordas destacadas.
+/** Exibe a questão atual com animação de transição:
+ *  - Usa fade-in na primeira questão;
+ *  - Usa flip-in para as transições subsequentes.
+ *  Permite alterar a resposta enquanto houver tempo.
  */
 function QuizQuestion({
   quiz,
@@ -352,7 +346,6 @@ function QuizQuestion({
     }
   }, [currentQuestionIndex]);
 
-  // Força a remount via key para reiniciar a animação
   return (
     <div key={currentQuestionIndex} className={`question-card balloon ${animClass}`}>
       <div>
@@ -404,8 +397,10 @@ function QuizQuestion({
 
 /** Componente para apresentação do quiz.
  *  Se o modo de apresentação for "umPorVez", renderiza apenas a questão atual.
- *  Se for "acumulativo", renderiza todas as questões até o índice atual,
- *  aplicando um efeito slide-down nas questões anteriores e fade-in na atual.
+ *  Se for "acumulativo", renderiza todas as questões até o índice atual:
+ *    - As questões anteriores recebem a classe "slide-down" (efeito de deslize para baixo).
+ *    - A questão atual usa efeito fade-in ou flip-in conforme definido em QuizQuestion.
+ *  Todos os cartões recebem a classe "balloon" para bordas mais destacadas.
  */
 function QuizPresentation({
   quiz,
@@ -538,9 +533,7 @@ export default function QuizAppCompleto() {
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
-  // Estado para o modo de distribuição (igual ou total)
   const [modoDistribuicao, setModoDistribuicao] = useState("igual");
-  // Estado para o modo de apresentação (uma questão por vez ou acumulativo)
   const [modoApresentacao, setModoApresentacao] = useState("umPorVez");
   const timerRef = useRef(null);
   const sheetUrl = "https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco";
@@ -793,7 +786,7 @@ export default function QuizAppCompleto() {
  *  Se o modo de apresentação for "umPorVez", renderiza apenas a questão atual.
  *  Se for "acumulativo", renderiza todas as questões até o índice atual:
  *    - As questões anteriores recebem a classe "slide-down" (efeito de deslize para baixo).
- *    - A questão atual usa o efeito fade-in.
+ *    - A questão atual usa efeito fade-in ou flip-in conforme definido em QuizQuestion.
  *  Todos os cartões recebem a classe "balloon" para bordas mais destacadas.
  */
 function QuizPresentation({
