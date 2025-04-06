@@ -57,7 +57,7 @@ export default function QuizAppCompleto() {
 
       return () => clearInterval(timerRef.current);
     }
-  }, [currentQuestionIndex, tempoAtivo, showResults, quiz]);
+  }, [currentQuestionIndex, tempoAtivo, showResults, quiz, tempoLimite]);
 
   const handleTimeExpired = () => {
     const i = currentQuestionIndex;
@@ -69,6 +69,7 @@ export default function QuizAppCompleto() {
     }
   };
 
+  // Calcula os tópicos filtrados para o manual selecionado
   const topicosFiltrados = [
     ...new Set(
       questions
@@ -77,32 +78,69 @@ export default function QuizAppCompleto() {
     ),
   ];
 
-  const gerarQuiz = () => {
-    let questoesSelecionadas = [];
-    const minQuestoesPorCategoria = Math.min(
-      ...selectedTopicos.map(t =>
-        questions.filter(
-          q =>
-            (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
-            q.Subtópico === t
-        ).length
-      )
-    );
-    const totalMaximo = minQuestoesPorCategoria * selectedTopicos.length;
-    if (numQuestoes > totalMaximo) {
-      setNumQuestoes(totalMaximo);
-    }
+  // Cálculo do total máximo de questões possíveis baseado na distribuição igual
+  const calcularTotalMaximo = () => {
+    // Se não houver tópicos selecionados, não há questões a distribuir
+    if (selectedTopicos.length === 0) return 0;
 
-    selectedTopicos.forEach(topico => {
+    // Para cada subtópico escolhido, contamos quantas questões há disponíveis
+    const questoesPorTopico = selectedTopicos.map(topico => {
+      return questions.filter(
+        q =>
+          (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
+          q.Subtópico === topico
+      ).length;
+    });
+
+    // O minQuestoesPorCategoria é o menor número de questões dentre os tópicos selecionados
+    const minQuestoesPorCategoria = Math.min(...questoesPorTopico);
+
+    // Máximo total, se quisermos mesmo número de questões por categoria
+    const totalMaximo = minQuestoesPorCategoria * selectedTopicos.length;
+
+    return totalMaximo;
+  };
+
+  const gerarQuiz = () => {
+    // Só gere o quiz se houver tópicos selecionados
+    if (selectedTopicos.length === 0) return;
+
+    const maxQuestoes = calcularTotalMaximo();
+    // Garante que numQuestoes não passe do máximo
+    const num = Math.min(numQuestoes, maxQuestoes);
+
+    let questoesSelecionadas = [];
+
+    // Distribuição igual
+    const cota = Math.floor(num / selectedTopicos.length);
+
+    // Embaralha tópicos para distribuir o 'resto' de forma mais aleatória (opcional)
+    const topicosEmbaralhados = [...selectedTopicos].sort(() => 0.5 - Math.random());
+
+    // Se quiser distribuir exatamente 'num' questões mesmo que não seja múltiplo do Nº de tópicos,
+    // podemos espalhar o resto nas primeiras categorias.
+    const resto = num % selectedTopicos.length;
+
+    topicosEmbaralhados.forEach((topico, idx) => {
+      // Quantidade base que essa categoria deve ter
+      let qtdePorTopico = cota;
+
+      // Se ainda sobrou resto para distribuir, acrescenta +1
+      if (idx < resto) {
+        qtdePorTopico += 1;
+      }
+
+      // Filtra todas as questões daquele tópico
       const questoesCategoria = questions.filter(
         q =>
           (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       );
-      const cota = Math.floor(numQuestoes / selectedTopicos.length);
+
+      // Embaralha e pega a quantidade definida
       const selecionadas = questoesCategoria
         .sort(() => 0.5 - Math.random())
-        .slice(0, cota);
+        .slice(0, qtdePorTopico);
 
       questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
     });
@@ -132,25 +170,26 @@ export default function QuizAppCompleto() {
     return score;
   };
 
+  const maxQuestoesPossiveis = calcularTotalMaximo();
+
   return (
     <div style={{ padding: '2rem' }}>
 
       <h1>Quiz Interativo</h1>
 
       {!quizIniciado && (
-  <div className="instructions-box">
-    <h2>Instruções:</h2>
-    <ul>
-      <li>Selecione o manual e os tópicos que deseja estudar.</li>
-      <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
-      <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
-      <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-      <li>As respostas não podem ser alteradas após selecionadas.</li>
-      <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
-    </ul>
-  </div>
-)}
-
+        <div className="instructions-box">
+          <h2>Instruções:</h2>
+          <ul>
+            <li>Selecione o manual e os tópicos que deseja estudar.</li>
+            <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
+            <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
+            <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
+            <li>As respostas não podem ser alteradas após selecionadas.</li>
+            <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
+          </ul>
+        </div>
+      )}
 
       {!quizIniciado && (
         <>
@@ -191,13 +230,21 @@ export default function QuizAppCompleto() {
               ))}
 
               <div style={{ marginTop: '1rem' }}>
-                <label>Quantidade de questões: </label>
+                <label>Quantidade de questões (máx: {maxQuestoesPossiveis || 0}): </label>
                 <input
                   type='number'
                   min={1}
-                  max={50}
+                  max={maxQuestoesPossiveis || 1}
                   value={numQuestoes}
-                  onChange={e => setNumQuestoes(Number(e.target.value))}
+                  onChange={e => {
+                    const valor = Number(e.target.value);
+                    setNumQuestoes(
+                      valor > maxQuestoesPossiveis
+                        ? maxQuestoesPossiveis
+                        : valor
+                    );
+                  }}
+                  disabled={selectedTopicos.length === 0}
                 />
               </div>
 
