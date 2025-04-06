@@ -39,7 +39,7 @@ function useLocalStorageState(key, defaultValue) {
    COMPONENTES DE SELEÇÃO
 -------------------- */
 
-/** Instruções iniciais */
+/** Exibe as instruções iniciais */
 function Instrucoes() {
   return (
     <div className="instructions-box fade-in">
@@ -68,17 +68,17 @@ function Instrucoes() {
   );
 }
 
-/** Seleção do manual */
+/** Permite selecionar o manual desejado */
 function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   return (
     <>
       <h2 className="section-title">Selecione o Manual:</h2>
-      {manuais.map((manual) => (
+      {manuais.map(manual => (
         <button
           key={manual}
           onClick={() => setSelectedManual(manual)}
           style={{
-            backgroundColor: selectedManual === manual ? "#1976d2" : "#ccc",
+            backgroundColor: selectedManual === manual ? '#1976d2' : '#ccc',
           }}
         >
           {manual}
@@ -88,37 +88,39 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-/** Exibe as seções e seus subtópicos agrupados */
+/** Exibe as seções e seus subtópicos agrupados.
+ * Se uma seção for selecionada, todos os seus subtópicos serão marcados.
+ */
 function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
   const seccoes = useMemo(() => {
     const filtered = questions.filter(
-      (q) => (q.MANUAL || "").trim().toUpperCase() === selectedManual
+      q => (q.MANUAL || "").trim().toUpperCase() === selectedManual
     );
     const groups = {};
-    filtered.forEach((q) => {
-      const secao = q.Seção; // ajuste conforme o campo real
+    filtered.forEach(q => {
+      const secao = q.Seção; // ajuste conforme seu campo real
       const subtitulo = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
       groups[secao].add(subtitulo);
     });
     return Object.entries(groups).map(([secao, subtopicosSet]) => ({
       secao,
-      subtopicos: Array.from(subtopicosSet),
+      subtopicos: Array.from(subtopicosSet)
     }));
   }, [questions, selectedManual]);
 
   const toggleSubtopico = (subtopico) => {
     if (selectedTopicos.includes(subtopico)) {
-      setSelectedTopicos(selectedTopicos.filter((s) => s !== subtopico));
+      setSelectedTopicos(selectedTopicos.filter(s => s !== subtopico));
     } else {
       setSelectedTopicos([...selectedTopicos, subtopico]);
     }
   };
 
   const toggleSection = (secao, subtopicos) => {
-    const allSelected = subtopicos.every((sub) => selectedTopicos.includes(sub));
+    const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
     if (allSelected) {
-      setSelectedTopicos(selectedTopicos.filter((s) => !subtopicos.includes(s)));
+      setSelectedTopicos(selectedTopicos.filter(s => !subtopicos.includes(s)));
     } else {
       setSelectedTopicos(Array.from(new Set([...selectedTopicos, ...subtopicos])));
     }
@@ -128,7 +130,7 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
     <div className="seccoes-selector fade-in">
       <h2 className="section-title">Selecione as Seções e Subtópicos:</h2>
       {seccoes.map(({ secao, subtopicos }) => {
-        const allSelected = subtopicos.every((sub) => selectedTopicos.includes(sub));
+        const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
         return (
           <div key={secao} className="seccao-group">
             <div className="seccao-header">
@@ -143,7 +145,7 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
               </label>
             </div>
             <div className="subtopicos-list">
-              {subtopicos.map((sub) => (
+              {subtopicos.map(sub => (
                 <div key={sub} className="subtopico-item">
                   <input
                     type="checkbox"
@@ -162,7 +164,7 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
   );
 }
 
-/** Configurações do quiz, incluindo modos de distribuição e apresentação */
+/** Combina a seleção de seções/subtópicos com as configurações do quiz */
 function ConfigSelector({
   questions,
   selectedManual,
@@ -177,20 +179,8 @@ function ConfigSelector({
   setTempoLimite,
   gerarQuiz,
   modoDistribuicao,
-  setModoDistribuicao,
-  modoApresentacao,
-  setModoApresentacao
+  setModoDistribuicao
 }) {
-  // Calcula o total de questões disponíveis para o modo "total"
-  const totalDisponivel = selectedTopicos.reduce((total, topico) => {
-    const count = questions.filter(
-      (q) =>
-        (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
-        q.Subtópico === topico
-    ).length;
-    return total + count;
-  }, 0);
-
   return (
     <div className="config-selector fade-in">
       <SeccoesSelector
@@ -200,9 +190,9 @@ function ConfigSelector({
         setSelectedTopicos={setSelectedTopicos}
       />
       {/* Seleção do modo de distribuição */}
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: '1rem' }}>
         <label>Modo de Distribuição:</label>
-        <label style={{ marginLeft: "0.5rem" }}>
+        <label style={{ marginLeft: '0.5rem' }}>
           <input
             type="radio"
             name="modoDistribuicao"
@@ -212,7 +202,7 @@ function ConfigSelector({
           />{" "}
           Distribuição Igual
         </label>
-        <label style={{ marginLeft: "0.5rem" }}>
+        <label style={{ marginLeft: '0.5rem' }}>
           <input
             type="radio"
             name="modoDistribuicao"
@@ -223,32 +213,8 @@ function ConfigSelector({
           Distribuição Total
         </label>
       </div>
-      {/* Seleção do modo de apresentação */}
-      <div style={{ marginTop: "1rem" }}>
-        <label>Modo de Apresentação:</label>
-        <label style={{ marginLeft: "0.5rem" }}>
-          <input
-            type="radio"
-            name="modoApresentacao"
-            value="umPorVez"
-            checked={modoApresentacao === "umPorVez"}
-            onChange={() => setModoApresentacao("umPorVez")}
-          />{" "}
-          Uma questão por vez
-        </label>
-        <label style={{ marginLeft: "0.5rem" }}>
-          <input
-            type="radio"
-            name="modoApresentacao"
-            value="acumulativo"
-            checked={modoApresentacao === "acumulativo"}
-            onChange={() => setModoApresentacao("acumulativo")}
-          />{" "}
-          Acumulativo (desliza anteriores para baixo)
-        </label>
-      </div>
       {/* Input de quantidade de questões */}
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: '1rem' }}>
         {modoDistribuicao === "igual" ? (
           <>
             <label>
@@ -259,7 +225,7 @@ function ConfigSelector({
               min={1}
               max={maxQuestoesPossiveis || 1}
               value={numQuestoes}
-              onChange={(e) => {
+              onChange={e => {
                 const valor = Number(e.target.value);
                 if (valor > (maxQuestoesPossiveis || 0)) {
                   alert(`O máximo de questões permitidas é ${maxQuestoesPossiveis}.`);
@@ -269,26 +235,38 @@ function ConfigSelector({
                 }
               }}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: "0.5rem", width: "80px" }}
+              style={{ marginLeft: '0.5rem', width: '80px' }}
             />
           </>
         ) : (
           <>
             <label>
-              Quantidade de questões (máx: {totalDisponivel}):
+              Quantidade de questões (máx:{" "}
+              {
+                selectedTopicos.reduce((total, topico) => {
+                  const count = questions.filter(
+                    q =>
+                      (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
+                      q.Subtópico === topico
+                  ).length;
+                  return total + count;
+                }, 0)
+              }
+              ):
             </label>
             <input
               type="number"
               min={1}
+              // Neste modo, não impomos o max no input; o valor máximo será controlado pela lógica de distribuição
               value={numQuestoes}
-              onChange={(e) => setNumQuestoes(Number(e.target.value))}
+              onChange={e => setNumQuestoes(Number(e.target.value))}
               disabled={selectedTopicos.length === 0}
-              style={{ marginLeft: "0.5rem", width: "80px" }}
+              style={{ marginLeft: '0.5rem', width: '80px' }}
             />
           </>
         )}
       </div>
-      <div style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: '1rem' }}>
         <input
           type="checkbox"
           id="tempoAtivo"
@@ -303,13 +281,13 @@ function ConfigSelector({
             <input
               type="number"
               value={tempoLimite}
-              onChange={(e) => setTempoLimite(Number(e.target.value))}
-              style={{ width: "80px", marginLeft: "0.5rem" }}
+              onChange={e => setTempoLimite(Number(e.target.value))}
+              style={{ width: '80px', marginLeft: '0.5rem' }}
             />
           </>
         )}
       </div>
-      <button style={{ marginTop: "1rem" }} onClick={gerarQuiz}>
+      <button style={{ marginTop: '1rem' }} onClick={gerarQuiz}>
         Gerar Quiz
       </button>
     </div>
@@ -346,8 +324,9 @@ function QuizQuestion({
     }
   }, [currentQuestionIndex]);
 
+  // Força a remount via key para reiniciar a animação
   return (
-    <div key={currentQuestionIndex} className={`question-card balloon ${animClass}`}>
+    <div key={currentQuestionIndex} className={`question-card ${animClass}`}>
       <div>
         <p>
           <strong>
@@ -393,69 +372,6 @@ function QuizQuestion({
       </div>
     </div>
   );
-}
-
-/** Componente para apresentação do quiz.
- *  Se o modo de apresentação for "umPorVez", renderiza apenas a questão atual.
- *  Se for "acumulativo", renderiza todas as questões até o índice atual:
- *    - As questões anteriores recebem a classe "slide-down" (efeito de deslize para baixo).
- *    - A questão atual usa efeito fade-in ou flip-in conforme definido em QuizQuestion.
- *  Todos os cartões recebem a classe "balloon" para bordas mais destacadas.
- */
-function QuizPresentation({
-  quiz,
-  currentQuestionIndex,
-  userAnswers,
-  handleAnswer,
-  setCurrentQuestionIndex,
-  setShowResults,
-  tempoAtivo,
-  timer,
-  modoApresentacao
-}) {
-  if (modoApresentacao === "umPorVez") {
-    return (
-      <QuizQuestion
-        quiz={quiz}
-        currentQuestionIndex={currentQuestionIndex}
-        userAnswers={userAnswers}
-        handleAnswer={handleAnswer}
-        setCurrentQuestionIndex={setCurrentQuestionIndex}
-        setShowResults={setShowResults}
-        tempoAtivo={tempoAtivo}
-        timer={timer}
-      />
-    );
-  } else {
-    return (
-      <div>
-        {quiz.slice(0, currentQuestionIndex).map((q, i) => (
-          <div key={i} className="question-card balloon slide-down">
-            <p>
-              <strong>
-                {i + 1}. {q.Questao}
-              </strong>
-            </p>
-            <div className="option">
-              <span>Resposta: {userAnswers[i] || "-"}</span>
-            </div>
-          </div>
-        ))}
-        {quiz[currentQuestionIndex] && (
-          <QuizQuestion
-            quiz={quiz}
-            currentQuestionIndex={currentQuestionIndex}
-            userAnswers={userAnswers}
-            handleAnswer={handleAnswer}
-            setCurrentQuestionIndex={setCurrentQuestionIndex}
-            setShowResults={setShowResults}
-            tempoAtivo={tempoAtivo}
-            timer={timer}
-          />
-        )}
-      </div>
-    );
-  }
 }
 
 /** Exibe os resultados com animação de fade-in */
@@ -534,7 +450,6 @@ export default function QuizAppCompleto() {
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
   const [modoDistribuicao, setModoDistribuicao] = useState("igual");
-  const [modoApresentacao, setModoApresentacao] = useState("umPorVez");
   const timerRef = useRef(null);
   const sheetUrl = "https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco";
 
@@ -582,7 +497,7 @@ export default function QuizAppCompleto() {
     }
   };
 
-  // Para modo "igual": cálculo do máximo de questões disponíveis
+  // maxQuestoesPossiveis para modo "igual" (distribuição igual)
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     const questoesPorTopico = selectedTopicos.map((topico) =>
@@ -597,7 +512,7 @@ export default function QuizAppCompleto() {
     return minQuestoesPorCategoria * selectedTopicos.length;
   }, [questions, selectedManual, selectedTopicos]);
 
-  // Para modo "total": soma total de questões disponíveis em todas as categorias selecionadas
+  // maxTotal para modo "total" (soma das questões disponíveis em cada categoria)
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
@@ -619,6 +534,7 @@ export default function QuizAppCompleto() {
       alert("Selecione pelo menos um tópico.");
       return;
     }
+    // Escolhe o método de distribuição
     if (modoDistribuicao === "igual") {
       const maxQuestoes = maxQuestoesPossiveis;
       const num = Math.min(numQuestoes, maxQuestoes);
@@ -642,13 +558,16 @@ export default function QuizAppCompleto() {
       });
       setQuiz(questoesSelecionadas);
     } else if (modoDistribuicao === "total") {
+      // Modo total: número máximo é a soma das questões disponíveis
       const maxTotal = maxTotalQuestoes;
       const num = Math.min(numQuestoes, maxTotal);
       if (num === 0) {
         alert("Não é possível gerar um quiz com 0 questões.");
         return;
       }
+      // Distribuição: iterativamente atribuir questões igualmente entre categorias restantes
       let remaining = num;
+      // Cria um objeto com a quantidade disponível por categoria
       const availability = {};
       selectedTopicos.forEach((topico) => {
         const count = questions.filter(
@@ -658,6 +577,7 @@ export default function QuizAppCompleto() {
         ).length;
         availability[topico] = count;
       });
+      // Inicializa as atribuições com zero
       const assignments = {};
       selectedTopicos.forEach((topico) => {
         assignments[topico] = 0;
@@ -671,8 +591,10 @@ export default function QuizAppCompleto() {
           availability[cat] -= assign;
           remaining -= assign;
         });
+        // Remove categorias esgotadas
         categories = categories.filter((cat) => availability[cat] > 0);
       }
+      // Agora, para cada categoria, seleciona aleatoriamente a quantidade atribuída
       let questoesSelecionadas = [];
       Object.keys(assignments).forEach((cat) => {
         const qty = assignments[cat];
@@ -695,7 +617,7 @@ export default function QuizAppCompleto() {
 
   const handleAnswer = (letra) => {
     const i = currentQuestionIndex;
-    // Permite alterar a resposta a qualquer momento
+    // Permite alterar a resposta a qualquer momento, mesmo que já haja uma resposta
     setUserAnswers((prev) => ({ ...prev, [i]: letra }));
   };
 
@@ -746,8 +668,6 @@ export default function QuizAppCompleto() {
               gerarQuiz={gerarQuiz}
               modoDistribuicao={modoDistribuicao}
               setModoDistribuicao={setModoDistribuicao}
-              modoApresentacao={modoApresentacao}
-              setModoApresentacao={setModoApresentacao}
             />
           )}
         </>
@@ -757,7 +677,7 @@ export default function QuizAppCompleto() {
           {tempoAtivo && (
             <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
           )}
-          <QuizPresentation
+          <QuizQuestion
             quiz={quiz}
             currentQuestionIndex={currentQuestionIndex}
             userAnswers={userAnswers}
@@ -766,7 +686,6 @@ export default function QuizAppCompleto() {
             setShowResults={setShowResults}
             tempoAtivo={tempoAtivo}
             timer={timer}
-            modoApresentacao={modoApresentacao}
           />
         </>
       )}
@@ -780,67 +699,4 @@ export default function QuizAppCompleto() {
       )}
     </div>
   );
-}
-
-/** Componente para apresentação do quiz.
- *  Se o modo de apresentação for "umPorVez", renderiza apenas a questão atual.
- *  Se for "acumulativo", renderiza todas as questões até o índice atual:
- *    - As questões anteriores recebem a classe "slide-down" (efeito de deslize para baixo).
- *    - A questão atual usa efeito fade-in ou flip-in conforme definido em QuizQuestion.
- *  Todos os cartões recebem a classe "balloon" para bordas mais destacadas.
- */
-function QuizPresentation({
-  quiz,
-  currentQuestionIndex,
-  userAnswers,
-  handleAnswer,
-  setCurrentQuestionIndex,
-  setShowResults,
-  tempoAtivo,
-  timer,
-  modoApresentacao
-}) {
-  if (modoApresentacao === "umPorVez") {
-    return (
-      <QuizQuestion
-        quiz={quiz}
-        currentQuestionIndex={currentQuestionIndex}
-        userAnswers={userAnswers}
-        handleAnswer={handleAnswer}
-        setCurrentQuestionIndex={setCurrentQuestionIndex}
-        setShowResults={setShowResults}
-        tempoAtivo={tempoAtivo}
-        timer={timer}
-      />
-    );
-  } else {
-    return (
-      <div>
-        {quiz.slice(0, currentQuestionIndex).map((q, i) => (
-          <div key={i} className="question-card balloon slide-down">
-            <p>
-              <strong>
-                {i + 1}. {q.Questao}
-              </strong>
-            </p>
-            <div className="option">
-              <span>Resposta: {userAnswers[i] || "-"}</span>
-            </div>
-          </div>
-        ))}
-        {quiz[currentQuestionIndex] && (
-          <QuizQuestion
-            quiz={quiz}
-            currentQuestionIndex={currentQuestionIndex}
-            userAnswers={userAnswers}
-            handleAnswer={handleAnswer}
-            setCurrentQuestionIndex={setCurrentQuestionIndex}
-            setShowResults={setShowResults}
-            tempoAtivo={tempoAtivo}
-            timer={timer}
-          />
-        )}
-      </div>
-    );
-  }
 }
