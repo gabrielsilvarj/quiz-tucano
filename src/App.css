@@ -189,3 +189,44 @@ button:focus {
   line-height: 1.5;
   color: #cfd8dc;
 }
+/* Novas regras para evidenciar a hierarquia de seções e subtópicos */
+.seccao-group {
+  margin: 1rem 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: var(--card-background);
+  box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+.seccao-header {
+  background-color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  color: #fff;
+}
+
+.seccao-header input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+.seccao-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.subtopicos-list {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.subtopico-item {
+  margin: 0.3rem 0;
+  display: flex;
+  align-items: center;
+}
+
+.subtopico-item input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
