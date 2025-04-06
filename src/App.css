@@ -1,3 +1,15 @@
+/* Variáveis CSS para tema */
+:root {
+  --primary-color: #42a5f5;
+  --primary-hover: #1e88e5;
+  --background-color: #121212;
+  --card-background: #1e1e1e;
+  --text-color: #e0e0e0;
+  --accent-color: #ff7043;
+  --secondary-color: #b0bec5;
+  --border-color: #37474f;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
 
 /* Reset e base */
 * {
@@ -8,15 +20,23 @@
 }
 
 body {
-  background-color: #121212;
-  color: #e0e0e0;
+  background-color: var(--background-color);
+  color: var(--text-color);
   line-height: 1.6;
+  scroll-behavior: smooth;
 }
 
+/* Container centralizado e responsivo */
 .container {
   max-width: 768px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
 }
 
 .title {
@@ -31,21 +51,22 @@ body {
   margin-bottom: 0.5rem;
   margin-top: 1.5rem;
   font-weight: bold;
-  color: #b0bec5;
+  color: var(--secondary-color);
 }
 
 /* Cards */
 .question-card {
-  background-color: #1e1e1e;
+  background-color: var(--card-background);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px var(--shadow-color);
   padding: 1.5rem;
   margin-bottom: 2rem;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .question-card:hover {
   transform: scale(1.01);
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .question-title {
@@ -60,31 +81,56 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* Inputs para opções */
 input[type='radio'],
 input[type='checkbox'] {
-  accent-color: #42a5f5;
+  accent-color: var(--primary-color);
+}
+
+/* Estilo para os labels das opções */
+input[type="radio"] + label,
+input[type="checkbox"] + label {
+  transition: background-color 0.2s ease, color 0.2s ease, padding 0.2s ease;
+  cursor: pointer;
+  display: inline-block;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Destaque para opção selecionada */
+input[type="radio"]:checked + label,
+input[type="checkbox"]:checked + label {
+  background-color: var(--primary-hover);
+  color: #fff;
 }
 
 /* Botões */
 button {
-  background-color: #42a5f5;
+  background-color: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 6px;
   padding: 0.6rem 1.2rem;
   font-size: 1rem;
   cursor: pointer;
-  margin: 0.4rem 0.4rem 0.4rem 0;
-  transition: background-color 0.2s ease;
+  margin: 0.4rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 button:hover {
-  background-color: #1e88e5;
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
 }
 
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.5);
+}
+
+/* Timer */
 .timer {
   font-size: 1.2rem;
-  color: #ff7043;
+  color: var(--accent-color);
   font-weight: bold;
   margin-bottom: 1rem;
 }
@@ -109,7 +155,7 @@ button:hover {
 .corrections-list li {
   margin-top: 1rem;
   line-height: 1.5;
-  background-color: #37474f;
+  background-color: var(--border-color);
   padding: 1rem;
   border-radius: 6px;
   list-style: none;
@@ -118,9 +164,11 @@ button:hover {
 .corrections-list strong {
   color: #ffffff;
 }
+
+/* Instruções */
 .instructions-box {
-  background-color: #1e1e1e;
-  border: 1px solid #37474f;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 2rem;
