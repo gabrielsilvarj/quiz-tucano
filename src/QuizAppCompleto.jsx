@@ -5,7 +5,7 @@ import './App.css';
    UTILITÁRIOS
 -------------------- */
 
-// Embaralha um array (algoritmo Fisher-Yates)
+// Embaralha um array utilizando o algoritmo Fisher-Yates
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -25,15 +25,13 @@ function useLocalStorageState(key, defaultValue) {
       return defaultValue;
     }
   });
-
   useEffect(() => {
     try {
       window.localStorage.setItem(key, JSON.stringify(state));
     } catch {
-      // Ignora erros
+      // Ignora erros em ambientes privados
     }
   }, [key, state]);
-
   return [state, setState];
 }
 
@@ -48,27 +46,39 @@ function Instrucoes() {
       <h2>Instruções:</h2>
       <ul>
         <li>Selecione o manual e as seções que deseja estudar.</li>
-        <li>Em cada seção, os subtópicos serão listados e poderão ser selecionados individualmente ou em conjunto.</li>
-        <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
+        <li>
+          Em cada seção, os subtópicos serão listados e poderão ser selecionados
+          individualmente ou em conjunto.
+        </li>
+        <li>
+          Escolha quantas questões deseja e, se quiser, ative o tempo por
+          questão.
+        </li>
         <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
-        <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-        <li>As respostas poderão ser alteradas enquanto o tempo não expirar ou se não houver tempo definido.</li>
+        <li>
+          Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.
+        </li>
+        <li>
+          As respostas poderão ser alteradas enquanto o tempo não expirar ou se
+          não houver tempo definido.
+        </li>
         <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
       </ul>
     </div>
   );
 }
 
+/** Permite selecionar o manual desejado */
 function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   return (
     <>
       <h2 className="section-title">Selecione o Manual:</h2>
-      {manuais.map(manual => (
+      {manuais.map((manual) => (
         <button
           key={manual}
           onClick={() => setSelectedManual(manual)}
           style={{
-            backgroundColor: selectedManual === manual ? '#1976d2' : '#ccc'
+            backgroundColor: selectedManual === manual ? "#1976d2" : "#ccc",
           }}
         >
           {manual}
@@ -78,44 +88,39 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-/** Exibe as seções e subtópicos agrupados
- *  Se uma seção for selecionada, todos os subtópicos são marcados.
+/** Exibe as seções e seus subtópicos agrupados.
+ * Se uma seção for selecionada, todos os seus subtópicos serão marcados.
  */
-function SeccoesSelector({
-  questions,
-  selectedManual,
-  selectedTopicos,
-  setSelectedTopicos
-}) {
+function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
   const seccoes = useMemo(() => {
     const filtered = questions.filter(
-      q => (q.MANUAL || '').trim().toUpperCase() === selectedManual
+      (q) => (q.MANUAL || "").trim().toUpperCase() === selectedManual
     );
     const groups = {};
-    filtered.forEach(q => {
-      const secao = q.Seção; // ajuste se necessário
+    filtered.forEach((q) => {
+      const secao = q.Seção; // ajuste conforme seu campo real
       const subtitulo = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
       groups[secao].add(subtitulo);
     });
     return Object.entries(groups).map(([secao, subtopicosSet]) => ({
       secao,
-      subtopicos: Array.from(subtopicosSet)
+      subtopicos: Array.from(subtopicosSet),
     }));
   }, [questions, selectedManual]);
 
-  const toggleSubtopico = subtopico => {
+  const toggleSubtopico = (subtopico) => {
     if (selectedTopicos.includes(subtopico)) {
-      setSelectedTopicos(selectedTopicos.filter(s => s !== subtopico));
+      setSelectedTopicos(selectedTopicos.filter((s) => s !== subtopico));
     } else {
       setSelectedTopicos([...selectedTopicos, subtopico]);
     }
   };
 
   const toggleSection = (secao, subtopicos) => {
-    const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
+    const allSelected = subtopicos.every((sub) => selectedTopicos.includes(sub));
     if (allSelected) {
-      setSelectedTopicos(selectedTopicos.filter(s => !subtopicos.includes(s)));
+      setSelectedTopicos(selectedTopicos.filter((s) => !subtopicos.includes(s)));
     } else {
       setSelectedTopicos(Array.from(new Set([...selectedTopicos, ...subtopicos])));
     }
@@ -125,7 +130,7 @@ function SeccoesSelector({
     <div className="seccoes-selector fade-in">
       <h2 className="section-title">Selecione as Seções e Subtópicos:</h2>
       {seccoes.map(({ secao, subtopicos }) => {
-        const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
+        const allSelected = subtopicos.every((sub) => selectedTopicos.includes(sub));
         return (
           <div key={secao} className="seccao-group">
             <div className="seccao-header">
@@ -140,7 +145,7 @@ function SeccoesSelector({
               </label>
             </div>
             <div className="subtopicos-list">
-              {subtopicos.map(sub => (
+              {subtopicos.map((sub) => (
                 <div key={sub} className="subtopico-item">
                   <input
                     type="checkbox"
@@ -159,12 +164,7 @@ function SeccoesSelector({
   );
 }
 
-/** Configurações de:
- *  - modo de distribuição (igual/total)
- *  - modo de apresentação (umPorVez/acumulativo)
- *  - número de questões
- *  - tempo por questão
- */
+/** Combina a seleção de seções/subtópicos com as configurações do quiz */
 function ConfigSelector({
   questions,
   selectedManual,
@@ -181,7 +181,7 @@ function ConfigSelector({
   modoDistribuicao,
   setModoDistribuicao,
   modoApresentacao,
-  setModoApresentacao
+  setModoApresentacao,
 }) {
   return (
     <div className="config-selector fade-in">
@@ -251,7 +251,7 @@ function ConfigSelector({
               min={1}
               max={maxQuestoesPossiveis || 1}
               value={numQuestoes}
-              onChange={e => {
+              onChange={(e) => {
                 const valor = Number(e.target.value);
                 if (valor > (maxQuestoesPossiveis || 0)) {
                   alert(`O máximo de questões permitidas é ${maxQuestoesPossiveis}.`);
@@ -266,14 +266,12 @@ function ConfigSelector({
           </>
         ) : (
           <>
-            <label>
-              Quantidade de questões:
-            </label>
+            <label>Quantidade de questões:</label>
             <input
               type="number"
               min={1}
               value={numQuestoes}
-              onChange={e => setNumQuestoes(Number(e.target.value))}
+              onChange={(e) => setNumQuestoes(Number(e.target.value))}
               disabled={selectedTopicos.length === 0}
               style={{ marginLeft: "0.5rem", width: "80px" }}
             />
@@ -295,7 +293,7 @@ function ConfigSelector({
             <input
               type="number"
               value={tempoLimite}
-              onChange={e => setTempoLimite(Number(e.target.value))}
+              onChange={(e) => setTempoLimite(Number(e.target.value))}
               style={{ width: "80px", marginLeft: "0.5rem" }}
             />
           </>
@@ -309,10 +307,14 @@ function ConfigSelector({
 }
 
 /* --------------------
-   APRESENTAÇÃO DAS QUESTÕES
+   COMPONENTES DO QUIZ
 -------------------- */
 
-/** Exibe **apenas** a questão atual, com animação flip/fade */
+/** Exibe a questão atual com animação de transição:
+ *  - Usa fade-in na primeira questão;
+ *  - Usa flip-in para as transições subsequentes.
+ *  Permite alterar a resposta enquanto houver tempo.
+ */
 function QuizQuestion({
   quiz,
   currentQuestionIndex,
@@ -379,9 +381,12 @@ function QuizQuestion({
   );
 }
 
-/** Modo de exibição "acumulativo":
- *  Exibe as questões anteriores com classe .slide-down
- *  e a atual com fade/flip.
+/** Modo de apresentação do quiz.
+ *  Se o modo for "umPorVez", renderiza apenas a questão atual.
+ *  Se for "acumulativo", renderiza todas as questões até o índice atual:
+ *    - As questões anteriores recebem a classe "slide-down" (com efeito de deslize para baixo)
+ *    - A questão atual é renderizada com a animação flip/fade.
+ *  Além disso, exibe o texto da alternativa selecionada (não somente a letra).
  */
 function QuizPresentation({
   quiz,
@@ -394,7 +399,6 @@ function QuizPresentation({
   timer,
   modoApresentacao
 }) {
-  // modo "umPorVez": apenas 1 questão
   if (modoApresentacao === "umPorVez") {
     return (
       <QuizQuestion
@@ -408,48 +412,54 @@ function QuizPresentation({
         timer={timer}
       />
     );
+  } else {
+    return (
+      <div>
+        {quiz.slice(0, currentQuestionIndex).map((q, i) => {
+          const altLetter = userAnswers[i];
+          const altText = altLetter ? q[`Alternativa ${altLetter}`] : "-";
+          return (
+            <div key={i} className="question-card balloon slide-down">
+              <p>
+                <strong>
+                  {i + 1}. {q.Questao}
+                </strong>
+              </p>
+              <div className="option">
+                <span>Resposta: {altText}</span>
+              </div>
+            </div>
+          );
+        })}
+        {quiz[currentQuestionIndex] && (
+          <QuizQuestion
+            quiz={quiz}
+            currentQuestionIndex={currentQuestionIndex}
+            userAnswers={userAnswers}
+            handleAnswer={handleAnswer}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
+            setShowResults={setShowResults}
+            tempoAtivo={tempoAtivo}
+            timer={timer}
+          />
+        )}
+      </div>
+    );
   }
-  // modo "acumulativo": questões anteriores + questão atual
-  return (
-    <div>
-      {quiz.slice(0, currentQuestionIndex).map((q, i) => (
-        <div key={i} className="question-card balloon slide-down">
-          <p>
-            <strong>{i + 1}. {q.Questao}</strong>
-          </p>
-          <div className="option">
-            <span>Resposta: {userAnswers[i] || "-"}</span>
-          </div>
-        </div>
-      ))}
-      {quiz[currentQuestionIndex] && (
-        <QuizQuestion
-          quiz={quiz}
-          currentQuestionIndex={currentQuestionIndex}
-          userAnswers={userAnswers}
-          handleAnswer={handleAnswer}
-          setCurrentQuestionIndex={setCurrentQuestionIndex}
-          setShowResults={setShowResults}
-          tempoAtivo={tempoAtivo}
-          timer={timer}
-        />
-      )}
-    </div>
-  );
 }
 
 /** Exibe os resultados com animação de fade-in */
 function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) {
   const [animClass, setAnimClass] = useState("fade-in");
-
   useEffect(() => {
     setAnimClass("fade-in");
   }, []);
-
   return (
     <div className={`result-section ${animClass}`}>
       <h2>Resultado Final</h2>
-      <p>Você acertou {calcularPontuacao()} de {quiz.length}</p>
+      <p>
+        Você acertou {calcularPontuacao()} de {quiz.length}
+      </p>
       <h3>Correções:</h3>
       <ul className="corrections-list">
         {quiz.map((q, i) => {
@@ -457,7 +467,9 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
           const expirou = userAnswers[i] === "TEMPO_EXPIRADO";
           return (
             <li key={i}>
-              <strong>{i + 1}. {q.Questao}</strong>
+              <strong>
+                {i + 1}. {q.Questao}
+              </strong>
               <br />
               {expirou && (
                 <span style={{ color: "red" }}>
@@ -497,29 +509,20 @@ function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) 
 export default function QuizAppCompleto() {
   const [questions, setQuestions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-
   const [manuais, setManuais] = useState([]);
   const [selectedManual, setSelectedManual] = useState("");
-  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState(
-    "quizSelectedTopicos",
-    []
-  );
+  const [selectedTopicos, setSelectedTopicos] = useLocalStorageState("quizSelectedTopicos", []);
   const [numQuestoes, setNumQuestoes] = useLocalStorageState("quizNumQuestoes", 10);
   const [tempoAtivo, setTempoAtivo] = useLocalStorageState("quizTempoAtivo", false);
   const [tempoLimite, setTempoLimite] = useLocalStorageState("quizTempoLimite", 30);
-
   const [timer, setTimer] = useState(tempoLimite);
   const [quiz, setQuiz] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [quizIniciado, setQuizIniciado] = useState(false);
-
-  // Modo de distribuição: "igual" ou "total"
   const [modoDistribuicao, setModoDistribuicao] = useState("igual");
-  // Modo de apresentação: "umPorVez" ou "acumulativo"
   const [modoApresentacao, setModoApresentacao] = useState("umPorVez");
-
   const timerRef = useRef(null);
   const sheetUrl = "https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco";
 
@@ -530,10 +533,8 @@ export default function QuizAppCompleto() {
         setQuestions(data);
         const uniqueManuais = [
           ...new Set(
-            data
-              .map((q) => (q.MANUAL || "").trim().toUpperCase())
-              .filter(Boolean)
-          )
+            data.map((q) => (q.MANUAL || "").trim().toUpperCase()).filter(Boolean)
+          ),
         ];
         setManuais(uniqueManuais);
         setIsLoading(false);
@@ -541,10 +542,8 @@ export default function QuizAppCompleto() {
       .catch(() => setIsLoading(false));
   }, []);
 
-  // Atualiza o timer cada vez que entramos numa nova questão
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) return;
-
     if (currentQuestionIndex < quiz.length) {
       setTimer(tempoLimite);
       if (timerRef.current) clearInterval(timerRef.current);
@@ -557,7 +556,6 @@ export default function QuizAppCompleto() {
           return prev - 1;
         });
       }, 1000);
-
       return () => clearInterval(timerRef.current);
     }
   }, [currentQuestionIndex, tempoAtivo, showResults, quiz, tempoLimite]);
@@ -572,12 +570,11 @@ export default function QuizAppCompleto() {
     }
   };
 
-  // Calcula o máximo de questões no modo "igual"
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
-    const questoesPorTopico = selectedTopicos.map(topico =>
+    const questoesPorTopico = selectedTopicos.map((topico) =>
       questions.filter(
-        q =>
+        (q) =>
           (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       ).length
@@ -587,12 +584,11 @@ export default function QuizAppCompleto() {
     return minQuestoesPorCategoria * selectedTopicos.length;
   }, [questions, selectedManual, selectedTopicos]);
 
-  // Soma total de questões no modo "total"
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
     return selectedTopicos.reduce((acc, topico) => {
       const count = questions.filter(
-        q =>
+        (q) =>
           (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       ).length;
@@ -623,7 +619,7 @@ export default function QuizAppCompleto() {
       topicosEmbaralhados.forEach((topico, idx) => {
         let qtde = cotaBase + (idx < resto ? 1 : 0);
         const questoesCategoria = questions.filter(
-          q =>
+          (q) =>
             (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico
         );
@@ -631,7 +627,7 @@ export default function QuizAppCompleto() {
         questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
       });
       setQuiz(questoesSelecionadas);
-    } else {
+    } else if (modoDistribuicao === "total") {
       const maxTotal = maxTotalQuestoes;
       const num = Math.min(numQuestoes, maxTotal);
       if (num === 0) {
@@ -640,33 +636,33 @@ export default function QuizAppCompleto() {
       }
       let remaining = num;
       const availability = {};
-      selectedTopicos.forEach(topico => {
+      selectedTopicos.forEach((topico) => {
         const count = questions.filter(
-          q =>
+          (q) =>
             (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico
         ).length;
         availability[topico] = count;
       });
       const assignments = {};
-      selectedTopicos.forEach(topico => {
+      selectedTopicos.forEach((topico) => {
         assignments[topico] = 0;
       });
       let categories = [...selectedTopicos];
       while (remaining > 0 && categories.length > 0) {
         const quota = Math.floor(remaining / categories.length) || 1;
-        categories.forEach(cat => {
+        categories.forEach((cat) => {
           const assign = Math.min(quota, availability[cat]);
           assignments[cat] += assign;
           availability[cat] -= assign;
           remaining -= assign;
         });
-        categories = categories.filter(cat => availability[cat] > 0);
+        categories = categories.filter((cat) => availability[cat] > 0);
       }
-      assignments && Object.keys(assignments).forEach(cat => {
+      Object.keys(assignments).forEach((cat) => {
         const qty = assignments[cat];
         const questoesCategoria = questions.filter(
-          q =>
+          (q) =>
             (q.MANUAL || "").trim().toUpperCase() === selectedManual &&
             q.Subtópico === cat
         );
@@ -675,7 +671,6 @@ export default function QuizAppCompleto() {
       });
       setQuiz(questoesSelecionadas);
     }
-
     setCurrentQuestionIndex(0);
     setUserAnswers({});
     setShowResults(false);
@@ -685,7 +680,7 @@ export default function QuizAppCompleto() {
 
   const handleAnswer = (letra) => {
     const i = currentQuestionIndex;
-    setUserAnswers(prev => ({ ...prev, [i]: letra }));
+    setUserAnswers((prev) => ({ ...prev, [i]: letra }));
   };
 
   const calcularPontuacao = () => {
@@ -705,15 +700,13 @@ export default function QuizAppCompleto() {
   };
 
   if (isLoading) {
-    return <div style={{ padding: '2rem' }}>Carregando...</div>;
+    return <div style={{ padding: "2rem" }}>Carregando...</div>;
   }
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: "2rem" }}>
       <h1 className="title fade-in">Teste de conhecimento T-27M</h1>
-
       {!quizIniciado && <Instrucoes />}
-
       {!quizIniciado && (
         <>
           <ManualSelector
@@ -721,7 +714,7 @@ export default function QuizAppCompleto() {
             selectedManual={selectedManual}
             setSelectedManual={setSelectedManual}
           />
-          {!showResults && selectedManual && (
+          {selectedManual && !showResults && (
             <ConfigSelector
               questions={questions}
               selectedManual={selectedManual}
@@ -743,11 +736,11 @@ export default function QuizAppCompleto() {
           )}
         </>
       )}
-
       {quizIniciado && quiz.length > 0 && !showResults && (
         <>
-          {tempoAtivo && <h3 className="timer fade-in">Tempo restante: {timer}s</h3>}
-
+          {tempoAtivo && (
+            <h3 className="timer fade-in">Tempo restante: {timer}s</h3>
+          )}
           <QuizPresentation
             quiz={quiz}
             currentQuestionIndex={currentQuestionIndex}
@@ -761,7 +754,6 @@ export default function QuizAppCompleto() {
           />
         </>
       )}
-
       {showResults && (
         <Resultados
           quiz={quiz}
@@ -772,4 +764,71 @@ export default function QuizAppCompleto() {
       )}
     </div>
   );
+}
+
+/** Componente que exibe as questões.
+ *  Se o modo de apresentação for "umPorVez", renderiza apenas a questão atual.
+ *  Se for "acumulativo", renderiza todas as questões até o índice atual:
+ *    - As questões anteriores recebem a classe "slide-down" (com efeito de deslize para baixo)
+ *      e exibem o texto completo da alternativa selecionada.
+ *    - A questão atual é renderizada com a animação flip/fade.
+ */
+function QuizPresentation({
+  quiz,
+  currentQuestionIndex,
+  userAnswers,
+  handleAnswer,
+  setCurrentQuestionIndex,
+  setShowResults,
+  tempoAtivo,
+  timer,
+  modoApresentacao
+}) {
+  if (modoApresentacao === "umPorVez") {
+    return (
+      <QuizQuestion
+        quiz={quiz}
+        currentQuestionIndex={currentQuestionIndex}
+        userAnswers={userAnswers}
+        handleAnswer={handleAnswer}
+        setCurrentQuestionIndex={setCurrentQuestionIndex}
+        setShowResults={setShowResults}
+        tempoAtivo={tempoAtivo}
+        timer={timer}
+      />
+    );
+  } else {
+    return (
+      <div>
+        {quiz.slice(0, currentQuestionIndex).map((q, i) => {
+          const altLetter = userAnswers[i];
+          const altText = altLetter ? q[`Alternativa ${altLetter}`] : "-";
+          return (
+            <div key={i} className="question-card balloon slide-down">
+              <p>
+                <strong>
+                  {i + 1}. {q.Questao}
+                </strong>
+              </p>
+              <div className="option">
+                <span>Resposta: {altText}</span>
+              </div>
+            </div>
+          );
+        })}
+        {quiz[currentQuestionIndex] && (
+          <QuizQuestion
+            quiz={quiz}
+            currentQuestionIndex={currentQuestionIndex}
+            userAnswers={userAnswers}
+            handleAnswer={handleAnswer}
+            setCurrentQuestionIndex={setCurrentQuestionIndex}
+            setShowResults={setShowResults}
+            tempoAtivo={tempoAtivo}
+            timer={timer}
+          />
+        )}
+      </div>
+    );
+  }
 }
