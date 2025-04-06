@@ -5,7 +5,7 @@ import './App.css';
   UTILITÁRIOS
 --------------- */
 
-// Embaralha um array de modo mais claro que sort(() => 0.5 - Math.random())
+// Embaralha um array de modo mais claro do que sort(() => 0.5 - Math.random())
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
@@ -228,7 +228,7 @@ function QuizQuestion({
 }
 
 /** Exibe o resultado final do quiz, correções e pontuação. */
-function Resultados({ quiz, userAnswers, calcularPontuacao }) {
+function Resultados({ quiz, userAnswers, calcularPontuacao, onFazerNovaProva }) {
   return (
     <div style={{ marginTop: '2rem' }}>
       <h2>Resultado Final</h2>
@@ -264,6 +264,11 @@ function Resultados({ quiz, userAnswers, calcularPontuacao }) {
           );
         })}
       </ul>
+
+      {/* Botão para fazer nova prova */}
+      <button onClick={onFazerNovaProva} style={{ marginTop: '1rem' }}>
+        Fazer nova prova
+      </button>
     </div>
   );
 }
@@ -300,9 +305,12 @@ export default function QuizAppCompleto() {
 
   const timerRef = useRef(null);
 
+  // URL da planilha
   const sheetUrl = 'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
 
-  // BUSCAR OS DADOS
+  /* ---------------
+     BUSCA DOS DADOS
+  --------------- */
   useEffect(() => {
     fetch(sheetUrl)
       .then(res => res.json())
@@ -319,7 +327,9 @@ export default function QuizAppCompleto() {
       .catch(() => setIsLoading(false));
   }, []);
 
-  // RELÓGIO
+  /* ---------------
+     RELÓGIO/TEMPO
+  --------------- */
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) {
       return;
@@ -353,7 +363,9 @@ export default function QuizAppCompleto() {
     }
   };
 
-  // TOPICOS DISPONÍVEIS
+  /* ---------------
+     CÁLCULO TÓPICOS
+  --------------- */
   const topicosFiltrados = useMemo(() => {
     return [
       ...new Set(
@@ -364,11 +376,12 @@ export default function QuizAppCompleto() {
     ];
   }, [questions, selectedManual]);
 
-  // CÁLCULO DO TOTAL MÁXIMO DE QUESTÕES PARA MANTER DISTRIBUIÇÃO IGUAL
+  /* ---------------
+     MÁXIMO QUESTÕES
+  --------------- */
   const maxQuestoesPossiveis = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
 
-    // Para cada subtópico escolhido, conta quantas questões há disponíveis
     const questoesPorTopico = selectedTopicos.map(topico => {
       return questions.filter(
         q =>
@@ -382,7 +395,9 @@ export default function QuizAppCompleto() {
     return minQuestoesPorCategoria * selectedTopicos.length;
   }, [questions, selectedManual, selectedTopicos]);
 
-  // GERA O QUIZ
+  /* ---------------
+     GERA O QUIZ
+  --------------- */
   const gerarQuiz = () => {
     if (!selectedManual) {
       alert('Selecione um manual primeiro.');
@@ -402,7 +417,6 @@ export default function QuizAppCompleto() {
     }
 
     let questoesSelecionadas = [];
-    // Divide igualmente
     const cotaBase = Math.floor(num / selectedTopicos.length);
     const resto = num % selectedTopicos.length;
 
@@ -416,6 +430,8 @@ export default function QuizAppCompleto() {
           (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico
       );
+
+      // Embaralha e pega a quantidade definida
       const selecionadas = shuffleArray(questoesCategoria).slice(0, qtde);
 
       questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
@@ -429,6 +445,9 @@ export default function QuizAppCompleto() {
     setQuizIniciado(true);
   };
 
+  /* ---------------
+     LÓGICA RESPOSTAS
+  --------------- */
   const handleAnswer = (letra) => {
     const i = currentQuestionIndex;
     if (!userAnswers[i]) {
@@ -446,7 +465,24 @@ export default function QuizAppCompleto() {
     return score;
   };
 
-  /* ------------------ RENDERIZAÇÃO ------------------ */
+  /* ---------------
+     REINICIAR QUIZ
+  --------------- */
+  const handleFazerNovaProva = () => {
+    // Restaura tudo para o estado inicial (exceto o que você desejar manter)
+    setQuiz([]);
+    setUserAnswers({});
+    setShowResults(false);
+    setQuizIniciado(false);
+    setCurrentQuestionIndex(0);
+    // Se quiser zerar também manual e tópicos selecionados:
+    // setSelectedManual('');
+    // setSelectedTopicos([]);
+  };
+
+  /* ---------------
+     RENDERIZAÇÃO
+  --------------- */
   if (isLoading) {
     return <div style={{ padding: '2rem' }}>Carregando...</div>;
   }
@@ -459,14 +495,12 @@ export default function QuizAppCompleto() {
 
       {!quizIniciado && (
         <>
-          {/* Componente para selecionar o manual */}
           <ManualSelector
             manuais={manuais}
             selectedManual={selectedManual}
             setSelectedManual={setSelectedManual}
           />
 
-          {/* Configurações de tópicos e quantidade de questões */}
           {selectedManual && !showResults && (
             <TopicosSelector
               topicos={topicosFiltrados}
@@ -505,6 +539,7 @@ export default function QuizAppCompleto() {
           quiz={quiz}
           userAnswers={userAnswers}
           calcularPontuacao={calcularPontuacao}
+          onFazerNovaProva={handleFazerNovaProva}
         />
       )}
     </div>
