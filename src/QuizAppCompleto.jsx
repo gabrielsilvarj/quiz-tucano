@@ -72,36 +72,41 @@ function ManualSelector({ manuais, selectedManual, setSelectedManual }) {
   );
 }
 
-function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelectedTopicos }) {
+function SeccoesSelector({
+  questions,
+  selectedManual,
+  selectedTopicos,
+  setSelectedTopicos,
+}) {
   const seccoes = useMemo(() => {
     const filtered = questions.filter(
-      q => (q.MANUAL || '').trim().toUpperCase() === selectedManual
+      (q) => (q.MANUAL || '').trim().toUpperCase() === selectedManual
     );
     const groups = {};
-    filtered.forEach(q => {
-      const secao = q.Seção; // ajuste conforme seu campo real
+    filtered.forEach((q) => {
+      const secao = q.Seção;
       const subtitulo = q.Subtópico;
       if (!groups[secao]) groups[secao] = new Set();
       groups[secao].add(subtitulo);
     });
     return Object.entries(groups).map(([secao, subtopicosSet]) => ({
       secao,
-      subtopicos: Array.from(subtopicosSet)
+      subtopicos: Array.from(subtopicosSet),
     }));
   }, [questions, selectedManual]);
 
   const toggleSubtopico = (subtopico) => {
     if (selectedTopicos.includes(subtopico)) {
-      setSelectedTopicos(selectedTopicos.filter(s => s !== subtopico));
+      setSelectedTopicos(selectedTopicos.filter((s) => s !== subtopico));
     } else {
       setSelectedTopicos([...selectedTopicos, subtopico]);
     }
   };
 
   const toggleSection = (secao, subtopicos) => {
-    const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
+    const allSelected = subtopicos.every((sub) => selectedTopicos.includes(sub));
     if (allSelected) {
-      setSelectedTopicos(selectedTopicos.filter(s => !subtopicos.includes(s)));
+      setSelectedTopicos(selectedTopicos.filter((s) => !subtopicos.includes(s)));
     } else {
       setSelectedTopicos(Array.from(new Set([...selectedTopicos, ...subtopicos])));
     }
@@ -111,31 +116,32 @@ function SeccoesSelector({ questions, selectedManual, selectedTopicos, setSelect
     <div className="seccoes-selector fade-in">
       <h2 className="section-title">Selecione as Seções e Subtópicos:</h2>
       {seccoes.map(({ secao, subtopicos }) => {
-        const allSelected = subtopicos.every(sub => selectedTopicos.includes(sub));
+        const allSelected = subtopicos.every((sub) =>
+          selectedTopicos.includes(sub)
+        );
         return (
           <div key={secao} className="seccao-group">
-            {/* Aplica a classe "selected" se todos os subtópicos estiverem marcados */}
-            <div className={seccao-header ${allSelected ? "selected" : ""}}>
+            <div className="seccao-header">
               <input
                 type="checkbox"
-                id={secao-${secao}}
+                id={`secao-${secao}`}
                 checked={allSelected}
                 onChange={() => toggleSection(secao, subtopicos)}
               />
-              <label htmlFor={secao-${secao}}>
+              <label htmlFor={`secao-${secao}`}>
                 <strong>{secao}</strong>
               </label>
             </div>
             <div className="subtopicos-list">
-              {subtopicos.map(sub => (
+              {subtopicos.map((sub) => (
                 <div key={sub} className="subtopico-item">
                   <input
                     type="checkbox"
-                    id={sub-${sub}}
+                    id={`sub-${sub}`}
                     checked={selectedTopicos.includes(sub)}
                     onChange={() => toggleSubtopico(sub)}
                   />
-                  <label htmlFor={sub-${sub}}>{sub}</label>
+                  <label htmlFor={`sub-${sub}`}>{sub}</label>
                 </div>
               ))}
             </div>
