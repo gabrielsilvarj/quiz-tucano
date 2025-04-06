@@ -42,11 +42,17 @@ function Instrucoes() {
       <h2>Instruções:</h2>
       <ul>
         <li>Selecione o manual e as seções que deseja estudar.</li>
-        <li>Em cada seção, os subtópicos serão listados e poderão ser selecionados individualmente ou em conjunto.</li>
+        <li>
+          Em cada seção, os subtópicos serão listados e poderão ser selecionados
+          individualmente ou em conjunto.
+        </li>
         <li>Escolha quantas questões deseja e, se quiser, ative o tempo por questão.</li>
         <li>Ao iniciar o quiz, uma questão será exibida por vez.</li>
         <li>Você poderá navegar entre as questões com os botões “Voltar” e “Avançar”.</li>
-        <li>As respostas poderão ser alteradas enquanto o tempo não expirar ou se não houver tempo definido.</li>
+        <li>
+          As respostas poderão ser alteradas enquanto o tempo não expirar ou se não
+          houver tempo definido.
+        </li>
         <li>Se o tempo da questão expirar, ela será marcada como errada.</li>
         <li>As respostas não serão armazenadas em nenhum banco de dados.</li>
       </ul>
@@ -173,6 +179,7 @@ function ConfigSelector({
   setModoApresentacao,
   nivelDificuldade,
   setNivelDificuldade,
+  niveisDificuldade,
 }) {
   const maxTotalQuestoes = useMemo(() => {
     if (selectedTopicos.length === 0) return 0;
@@ -181,7 +188,7 @@ function ConfigSelector({
         q =>
           (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico &&
-          (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+          (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
       ).length;
       return acc + count;
     }, 0);
@@ -193,7 +200,7 @@ function ConfigSelector({
       q =>
         (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
         selectedTopicos.includes(q.Subtópico) &&
-        (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+        (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
     );
     const questoesPorTopico = selectedTopicos.map(topico =>
       questoesFiltradas.filter(q => q.Subtópico === topico).length
@@ -215,7 +222,7 @@ function ConfigSelector({
       <div className="config-section balloon">
         <h3 className="config-title">Nível de Dificuldade</h3>
         <div className="radio-group">
-          {['Todos', 'Fácil', 'Médio', 'Difícil'].map((nivel) => (
+          {niveisDificuldade.map((nivel) => (
             <label key={nivel} className="radio-option">
               <input
                 type="radio"
@@ -557,8 +564,8 @@ export default function QuizAppCompleto() {
   const [numQuestoes, setNumQuestoes] = useLocalStorageState('quizNumQuestoes', 10);
   const [tempoAtivo, setTempoAtivo] = useLocalStorageState('quizTempoAtivo', false);
   const [tempoLimite, setTempoLimite] = useLocalStorageState('quizTempoLimite', 30);
-  
-  // Novo estado para nível de dificuldade (default "Todos")
+
+  // Novo estado para nível de dificuldade (valor inicial "Todos")
   const [nivelDificuldade, setNivelDificuldade] = useLocalStorageState('quizNivelDificuldade', 'Todos');
 
   const [timer, setTimer] = useState(tempoLimite);
@@ -589,6 +596,15 @@ export default function QuizAppCompleto() {
       })
       .catch(() => setIsLoading(false));
   }, []);
+
+  // Cria uma lista com os níveis únicos de dificuldade, adicionando "Todos"
+  const niveisDificuldade = useMemo(() => {
+    if (!selectedManual) return ['Todos'];
+    const diffs = questions
+      .filter(q => (q.MANUAL || '').trim().toUpperCase() === selectedManual && q["Nível de Dificuldade"])
+      .map(q => q["Nível de Dificuldade"]);
+    return ['Todos', ...new Set(diffs)];
+  }, [questions, selectedManual]);
 
   useEffect(() => {
     if (!tempoAtivo || showResults || quiz.length === 0) return;
@@ -624,7 +640,7 @@ export default function QuizAppCompleto() {
       q =>
         (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
         selectedTopicos.includes(q.Subtópico) &&
-        (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+        (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
     );
     const questoesPorTopico = selectedTopicos.map(topico =>
       questoesFiltradas.filter(q => q.Subtópico === topico).length
@@ -640,7 +656,7 @@ export default function QuizAppCompleto() {
         q =>
           (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
           q.Subtópico === topico &&
-          (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+          (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
       ).length;
       return acc + count;
     }, 0);
@@ -674,7 +690,7 @@ export default function QuizAppCompleto() {
           q =>
             (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico &&
-            (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+            (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
         );
         const selecionadas = shuffleArray(questoesCategoria).slice(0, qtde);
         questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
@@ -694,7 +710,7 @@ export default function QuizAppCompleto() {
           q =>
             (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
             q.Subtópico === topico &&
-            (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+            (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
         ).length;
         availability[topico] = count;
       });
@@ -720,7 +736,7 @@ export default function QuizAppCompleto() {
             q =>
               (q.MANUAL || '').trim().toUpperCase() === selectedManual &&
               q.Subtópico === cat &&
-              (nivelDificuldade === 'Todos' || q.Dificuldade === nivelDificuldade)
+              (nivelDificuldade === 'Todos' || q["Nível de Dificuldade"] === nivelDificuldade)
           );
           const selecionadas = shuffleArray(questoesCategoria).slice(0, qty);
           questoesSelecionadas = questoesSelecionadas.concat(selecionadas);
@@ -795,6 +811,7 @@ export default function QuizAppCompleto() {
                 setModoApresentacao={setModoApresentacao}
                 nivelDificuldade={nivelDificuldade}
                 setNivelDificuldade={setNivelDificuldade}
+                niveisDificuldade={niveisDificuldade}
               />
             )}
           </>
