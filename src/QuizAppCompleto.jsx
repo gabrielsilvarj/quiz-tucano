@@ -376,29 +376,32 @@ export default function QuizAppCompleto() {
 
   const sheetUrl = 'https://api.steinhq.com/v1/storages/67f1b6f8c0883333658c85c4/Banco';
 
-  useEffect(() => {
-    fetch(sheetUrl)
-      .then(res => res.json())
-      .then(data => {
-        const dadosNormalizados = data.map(q => ({
-          ...q,
-          MANUAL: (q.MANUAL || '').trim().toUpperCase(),
-          Subtópico: (q.Subtópico || '').trim().toUpperCase(),
-          Seção: (q.Seção || '').trim()
-        }));
+ useEffect(() => {
+  fetch(sheetUrl)
+    .then(res => res.json())
+    .then(data => {
+      const dadosNormalizados = data.map(q => ({
+        ...q,
+        MANUAL: (q.MANUAL || '').trim().toUpperCase(),
+        Subtópico: (q.Subtópico || '').trim().toUpperCase(),
+        Seção: (q.Seção || '').trim()
+      }));
 
-        setQuestions(dadosNormalizados);
-        const uniqueManuais = Array.from(new Set(dadosNormalizados.map(q => q.MANUAL)));
-        setManuais(uniqueManuais);
-        setIsLoading(false);
-        console.log('Dados normalizados:', dadosNormalizados.slice(0, 5));
-        console.log('DEBUG -> uniqueManuais:', uniqueManuais);
-      })
-      .catch(erro => {
-        console.error('Erro ao buscar banco:', erro);
-        setIsLoading(false);
-      });
-  }, []);
+      setQuestions(dadosNormalizados);
+
+      const uniqueManuais = Array.from(new Set(dadosNormalizados.map(q => q.MANUAL)));
+      setManuais(uniqueManuais);
+      setIsLoading(false);
+
+      // Estes logs DEVEM ficar dentro do .then
+      console.log('Dados normalizados:', dadosNormalizados.slice(0, 5));
+      console.log('DEBUG -> uniqueManuais:', uniqueManuais);
+    })
+    .catch(erro => {
+      console.error('Erro ao buscar banco:', erro);
+      setIsLoading(false);
+    });
+}, []);
 
   const handleTimeExpired = useCallback(() => {
     const i = currentQuestionIndex;
