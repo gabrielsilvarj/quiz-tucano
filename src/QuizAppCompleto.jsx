@@ -41,7 +41,7 @@ function Instrucoes() {
     <div className="instructions-box fade-in">
       <h2>Instruções:</h2>
       <ul>
-        <li>Selecione o manual e as seções que deseja estudar.</li>
+        <li>Selecione o Manual e as seções que deseja estudar.</li>
         <li>
           Em cada seção, os subtópicos serão listados e poderão ser selecionados
           individualmente ou em conjunto.
